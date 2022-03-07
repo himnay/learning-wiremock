@@ -10,8 +10,8 @@ import java.time.LocalDate;
 
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class Movie {
 
     private Long movie_id;

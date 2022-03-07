@@ -1,0 +1,7 @@
+{
+  "movie_id": "{{request.path.[3]}}",
+  "name": "{{jsonPath request.body '$.name'}}",
+  "year": "{{jsonPath request.body '$.year'}}",
+  "cast": "Angelina Jolie, Salma Hayek, Gemma Chan, {{jsonPath request.body '$.cast'}}",
+  "release_date": "{{date parseDate(jsonPath request.body '$.year')}}"
+}
