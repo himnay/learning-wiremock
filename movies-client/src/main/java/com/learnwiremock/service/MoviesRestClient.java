@@ -191,4 +191,31 @@ public class MoviesRestClient {
             throw new MovieErrorResponseException(exception);
         }
     }
+
+    /**
+     * DELETE a movie by name
+     */
+    public String deleteMovieByName(String movieName) {
+        try {
+            String retrieveByYearUri = UriComponentsBuilder
+                    .fromUriString(MOVIE_BY_NAME_QUERY_PARAM_V1)
+                    .queryParam("movieName", movieName)
+                    .buildAndExpand()
+                    .toUriString();
+
+             webClient
+                    .delete()
+                    .uri(retrieveByYearUri)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+        } catch (WebClientResponseException webClientResponseException) {
+            log.error("WebClientResponseException - Error Message is : {}", webClientResponseException, webClientResponseException.getResponseBodyAsString());
+            throw new MovieErrorResponseException(webClientResponseException.getStatusText(), webClientResponseException);
+        } catch (Exception exception) {
+            log.error("Exception - The Error Message is {} ", exception.getMessage());
+            throw new MovieErrorResponseException(exception);
+        }
+        return "movie " + movieName + " deleted successfully";
+    }
 }

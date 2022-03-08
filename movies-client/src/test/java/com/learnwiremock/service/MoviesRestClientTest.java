@@ -9,7 +9,7 @@ import com.github.tomakehurst.wiremock.core.Options;
 import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
 import com.learnwiremock.dto.Movie;
 import com.learnwiremock.exception.MovieErrorResponseException;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.After;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -48,10 +48,14 @@ class MoviesRestClientTest {
         String baseUrl = String.format("http://localhost:%s/", wireMockServer.port());
         webClient = WebClient.create(baseUrl);
         moviesRestClient = new MoviesRestClient(webClient);
+
+        //reversing proxying
+//        stubFor(any(anyUrl()).willReturn(aResponse().proxiedFrom("http://localhost:8081")));
     }
 
-    @AfterEach
+    @After
     public void cleanup() {
+        wireMockServer.stop();
     }
 
     @Test
@@ -336,7 +340,7 @@ class MoviesRestClientTest {
     }
 
     @Test
-    @DisplayName("DELETE movie")
+    @DisplayName("DELETE movie by movie id")
     void deleteMovieById() {
         var response = aResponse()
                 .withStatus(HttpStatus.OK.value())
@@ -382,6 +386,70 @@ class MoviesRestClientTest {
 
         MovieErrorResponseException movieErrorResponseException = assertThrows(MovieErrorResponseException.class, () -> moviesRestClient.deleteMovieById(100), "MovieErrorResponse exception expected");
         assertEquals("Not Found", movieErrorResponseException.getMessage());
+    }
+
+    @Test
+    @DisplayName("DELETE movie by name. Allows you to test a REST API which is not yet created")
+    void deleteMovieByName() {
+        // create a movie
+        var response = aResponse()
+                .withStatus(HttpStatus.OK.value())
+                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .withHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                .withBodyFile("add-movie-byTemplate.json");
+
+        stubFor((post(urlPathEqualTo(ADD_MOVIE_V1))
+                .withRequestBody(matchingJsonPath(("$.name"), equalTo("Eternals2"))) // verify if field name exists and value matches
+                .withRequestBody(matchingJsonPath(("$.cast"), containing("Salma"))) // verify if field cast exists and value matches
+                .willReturn(response)));
+
+        LocalDate releaseDate = LocalDate.of(2024, 10, 18);
+        Movie movie = new Movie(null, "Eternals2", 2024, "Angelina Jolie, Salma Hayek, Gemma Chan", releaseDate);
+
+        moviesRestClient.addNewMovie(movie);
+
+        // delete a movie
+        response = aResponse()
+                .withStatus(HttpStatus.OK.value())
+                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .withHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                .withBody("Movie Deleted Successfully");
+
+        stubFor((delete(urlEqualTo(MOVIE_BY_NAME_QUERY_PARAM_V1 + "?movieName="+movie.getName()))
+                .willReturn(response)));
+
+        var deleteResponse = moviesRestClient.deleteMovieByName(movie.getName());
+
+        assertEquals(deleteResponse, "movie " + movie.getName() + " deleted successfully");
+
+        // verify the call is actually made to wiremock
+        verify(exactly(1), postRequestedFor(urlPathEqualTo(ADD_MOVIE_V1))
+                .withRequestBody(matchingJsonPath(("$.name"), equalTo("Eternals2"))) // verify if field name exists and value matches
+                .withRequestBody(matchingJsonPath(("$.cast"), containing("Salma"))));
+
+        verify(exactly(1), deleteRequestedFor(urlEqualTo(MOVIE_BY_NAME_QUERY_PARAM_V1 + "?movieName="+movie.getName())));
+    }
+
+    @Test
+    @DisplayName("DELETE Selective Proxying movie by movie id")
+    void deleteMovieByIdSelectiveProxying() {
+        LocalDate releaseDate = LocalDate.of(2021, 10, 18);
+        Movie movie = new Movie(15L, "Eternals", 2021, "Angelina Jolie, Salma Hayek, Gemma Chan", releaseDate);
+
+        moviesRestClient.addNewMovie(movie);
+
+        var response = aResponse()
+                .withStatus(HttpStatus.OK.value())
+                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .withHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                .withBody("Movie Deleted Successfully");
+
+        stubFor((delete(urlPathMatching("/movieservice/v1/movie/[0-9]+"))
+                .willReturn(response)));
+
+        var deleteResponse = moviesRestClient.deleteMovieById(15);
+
+        assertEquals(deleteResponse, "Movie Deleted Successfully");
     }
 
 }
