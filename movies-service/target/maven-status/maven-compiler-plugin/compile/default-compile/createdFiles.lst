@@ -1,8 +1,9 @@
 com/learnwiremock/movies/exception/MovieNotFoundException.class
-com/learnwiremock/movies/MoviesServiceApplication.class
-com/learnwiremock/movies/exception/GlobalExceptionHandler.class
+com/learnwiremock/movies/config/LoggingConfig.class
 com/learnwiremock/movies/controller/MovieController.class
-com/learnwiremock/movies/repository/MovieRepository.class
-com/learnwiremock/movies/domain/Movie.class
 com/learnwiremock/movies/domain/Movie$MovieBuilder.class
 com/learnwiremock/movies/service/MovieService.class
+com/learnwiremock/movies/MoviesServiceApplication.class
+com/learnwiremock/movies/exception/GlobalExceptionHandler.class
+com/learnwiremock/movies/repository/MovieRepository.class
+com/learnwiremock/movies/domain/Movie.class
