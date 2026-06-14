@@ -1,5 +1,0 @@
-rootProject.name = 'learning-wiremock'
-include 'movies-client'
-include 'movies-restful-service'
-include 'springboot-wiremock'
-

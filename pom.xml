@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.org.llm</groupId>
+        <artifactId>super-pom</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <groupId>com.learnwiremock</groupId>
+    <artifactId>learning-wiremock</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>learning-wiremock</name>
+    <description>Learning WireMock with Spring Boot — stubs, response templates, fault simulation, and selective proxying</description>
+
+    <properties>
+        <java.version>25</java.version>
+    </properties>
+
+    <modules>
+        <module>movies-client</module>
+        <module>movies-service</module>
+    </modules>
+
+    <build>
+        <plugins>
+            <!--
+                JaCoCo 0.8.13 (from super-pom) does not support Java 25 class-file
+                format (major version 69) — omitting it here until JaCoCo adds support.
+                Re-enable by adding the plugin back once a compatible version is available.
+            -->
+        </plugins>
+    </build>
+
+</project>

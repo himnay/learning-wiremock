@@ -1,26 +1,19 @@
 package com.learnwiremock.service;
 
-import com.github.jenspiegsa.wiremockextension.ConfigureWireMock;
-import com.github.jenspiegsa.wiremockextension.InjectServer;
-import com.github.jenspiegsa.wiremockextension.WireMockExtension;
-import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
-import com.github.tomakehurst.wiremock.core.Options;
-import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.learnwiremock.dto.Movie;
 import com.learnwiremock.exception.MovieErrorResponseException;
-import org.junit.After;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Random;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
@@ -28,428 +21,319 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static com.learnwiremock.constants.MovieAppConstants.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-@ExtendWith(WireMockExtension.class)
+/**
+ * WireMock 3.x — uses WireMock's own JUnit 5 {@link WireMockExtension}
+ * (replaces the legacy jenspiegsa extension).
+ * <p>
+ * ResponseTemplateTransformer is registered globally so every stub that
+ * references {@code {{...}}} Handlebars expressions is handled automatically.
+ */
 class MoviesRestClientTest {
 
+    @RegisterExtension
+    static WireMockExtension wireMock = WireMockExtension.newInstance()
+            .options(wireMockConfig()
+                    .dynamicPort()
+                    .notifier(new ConsoleNotifier(false))
+                    .templatingEnabled(true)    // enable WireMock 3.x built-in response templating
+                    .globalTemplating(true))    // apply templates to every stub automatically
+            .build();
+
     private MoviesRestClient moviesRestClient;
-    private WebClient webClient;
-
-    @InjectServer
-    WireMockServer wireMockServer;
-
-    @ConfigureWireMock
-    Options options = wireMockConfig()
-            .port(8088)
-            .notifier(new ConsoleNotifier(true))
-            .extensions(new ResponseTemplateTransformer(true));
 
     @BeforeEach
-    public void init() {
-        String baseUrl = String.format("http://localhost:%s/", wireMockServer.port());
-        webClient = WebClient.create(baseUrl);
+    void setup() {
+        WebClient webClient = WebClient.create(wireMock.baseUrl());
         moviesRestClient = new MoviesRestClient(webClient);
-
-        //reversing proxying
-//        stubFor(any(anyUrl()).willReturn(aResponse().proxiedFrom("http://localhost:8081")));
-    }
-
-    @After
-    public void cleanup() {
-        wireMockServer.stop();
     }
 
     @Test
     @DisplayName("GET all movies")
     void retrieveAllMoviesTest() {
-        var response = aResponse()
-                .withStatus(HttpStatus.OK.value())
-                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .withHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .withBodyFile("all-movies.json");
-
-//        stubFor(get(anyUrl())
-//                .willReturn(response));
-
-        stubFor((get(urlPathEqualTo(GET_ALL_MOVIES_V1)))
-                .willReturn(response));
+        wireMock.stubFor(get(urlPathEqualTo(GET_ALL_MOVIES_V1))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBodyFile("all-movies.json")));
 
         var movies = moviesRestClient.retrieveAllMovies();
 
         assertNotNull(movies);
-        assertTrue(movies.size() == 10);
+        assertEquals(10, movies.size());
         movies.forEach(movie -> assertNotNull(movie.getMovie_id()));
     }
 
     @Test
-    @DisplayName("GET a movies by its id")
+    @DisplayName("GET a movie by id")
     void retrieveMovieByIdTest() {
-        var response = aResponse()
-                .withStatus(HttpStatus.OK.value())
-                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .withHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .withBodyFile("movie.json");
+        wireMock.stubFor(get(urlPathMatching("/movieservice/v1/movie/[0-9]+"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBodyFile("movie.json")));
 
-        int movieId = 1;
-        stubFor((get(urlPathMatching("/movieservice/v1/movie/[0-9]")))
-                .willReturn(response));
+        var movie = moviesRestClient.retrieveMovieById(1);
 
-
-        var movie = moviesRestClient.retrieveMovieById(movieId);
-
-        assertEquals(movie.getName(), "Batman Begins");
-        assertEquals(movie.getYear(), 2005);
-        assertEquals(movie.getCast(), "Christian Bale, Katie Holmes , Liam Neeson");
+        assertEquals("Batman Begins", movie.getName());
+        assertEquals(2005, movie.getYear());
+        assertEquals("Christian Bale, Katie Holmes , Liam Neeson", movie.getCast());
     }
 
     @Test
-    @DisplayName("GET a movies by its id")
+    @DisplayName("GET a movie by id — response template injects path param as movie_id")
     void retrieveMovieByIdWithDynamicResponseTest() {
-        var response = aResponse()
-                .withStatus(HttpStatus.OK.value())
-                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .withHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .withBodyFile("movie.json");
+        wireMock.stubFor(get(urlPathMatching("/movieservice/v1/movie/[0-9]+"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBodyFile("movie.json")));
 
-        int movieId = 9;
-        stubFor((get(urlPathMatching("/movieservice/v1/movie/[0-9]")))
-                .willReturn(response));
+        var movie = moviesRestClient.retrieveMovieById(9);
 
-        var movie = moviesRestClient.retrieveMovieById(movieId);
-
-        assertEquals(movie.getMovie_id(), 9L);
-        assertEquals(movie.getName(), "Batman Begins");
-        assertEquals(movie.getYear(), 2005);
-        assertEquals(movie.getCast(), "Christian Bale, Katie Holmes , Liam Neeson");
+        assertEquals(9L, movie.getMovie_id());
+        assertEquals("Batman Begins", movie.getName());
     }
 
     @Test
-    @DisplayName("GET a movies by its id when not found")
+    @DisplayName("GET a movie by id — 404 not found")
     void retrieveMovieByIdNotFoundTest() {
-        var response = aResponse()
-                .withStatus(HttpStatus.NOT_FOUND.value())
-                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .withHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .withBodyFile("404-movieid.json");
+        wireMock.stubFor(get(urlPathMatching("/movieservice/v1/movie/[0-9]+"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.NOT_FOUND.value())
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBodyFile("404-movieid.json")));
 
-        stubFor((get(urlPathMatching("/movieservice/v1/movie/[0-9]+"))) // + support any no of character 2digit, 3digit...
-                .willReturn(response));
-
-        assertThrows(MovieErrorResponseException.class, () -> moviesRestClient.retrieveMovieById(new Random().nextInt(1000)), "MovieErrorResponseException is expected");
+        assertThrows(MovieErrorResponseException.class,
+                () -> moviesRestClient.retrieveMovieById(new Random().nextInt(1000)),
+                "MovieErrorResponseException expected for 404");
     }
 
     @Test
-    @DisplayName("GET movie by name")
+    @DisplayName("GET movies by name")
     void retrieveMovieByNameTest() {
-        var response = aResponse()
-                .withStatus(HttpStatus.OK.value())
-                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .withHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .withBodyFile("avengers.json");
+        wireMock.stubFor(get(urlPathEqualTo(MOVIE_BY_NAME_QUERY_PARAM_V1))
+                .withQueryParam("movie_name", equalTo("Avengers"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBodyFile("avengers.json")));
 
-        String movieName = "Avengers";
-//        stubFor((get(urlPathEqualTo(MOVIE_BY_NAME_QUERY_PARAM_V1+"?movie_name=" + movieName)))
-//                .willReturn(response));
+        var movies = moviesRestClient.retrieveMovieByName("Avengers");
 
-        stubFor((get(urlPathEqualTo(MOVIE_BY_NAME_QUERY_PARAM_V1))
-                    .withQueryParam("movie_name", equalTo(movieName)))
-                    .willReturn(response));
-
-        var movies = moviesRestClient.retrieveMovieByName(movieName);
-
-        assertEquals(movies.size(), 4);
-
+        assertEquals(4, movies.size());
         movies.forEach(movie -> assertTrue(movie.getName().contains("Avengers")));
     }
 
     @Test
-    @DisplayName("GET movie by name")
-    void retrieveMovieByNameUsingNameTemplateTest() {
-        var response = aResponse()
-                .withStatus(HttpStatus.OK.value())
-                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .withHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .withBodyFile("movie-byName-template.json");
+    @DisplayName("GET movies by name — response template injects query param into movie names")
+    void retrieveMovieByNameUsingTemplateTest() {
+        wireMock.stubFor(get(urlPathEqualTo(MOVIE_BY_NAME_QUERY_PARAM_V1))
+                .withQueryParam("movie_name", equalTo("Avengers"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBodyFile("movie-byName-template.json")));
 
-        String movieName = "Avengers";
-//        stubFor((get(urlPathEqualTo(MOVIE_BY_NAME_QUERY_PARAM_V1+"?movie_name=" + movieName)))
-//                .willReturn(response));
+        var movies = moviesRestClient.retrieveMovieByName("Avengers");
 
-        stubFor((get(urlPathEqualTo(MOVIE_BY_NAME_QUERY_PARAM_V1))
-                .withQueryParam("movie_name", equalTo(movieName)))
-                .willReturn(response));
-
-        var movies = moviesRestClient.retrieveMovieByName(movieName);
-
-        assertEquals(movies.size(), 4);
-
+        assertEquals(4, movies.size());
         movies.forEach(movie -> assertTrue(movie.getName().contains("Avengers")));
     }
 
     @Test
-    @DisplayName("GET movie by year")
+    @DisplayName("GET movies by year")
     void retrieveMovieByYearTest() {
-        var response = aResponse()
-                .withStatus(HttpStatus.OK.value())
-                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .withHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .withBodyFile("movies-byYear.json");
+        wireMock.stubFor(get(urlPathEqualTo(MOVIE_BY_YEAR_QUERY_PARAM_V1))
+                .withQueryParam("year", equalTo("2012"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBodyFile("movies-byYear.json")));
 
-        int year = 2012;
+        var movies = moviesRestClient.retrieveMovieByYear(2012);
 
-        stubFor((get(urlPathEqualTo(MOVIE_BY_YEAR_QUERY_PARAM_V1))
-                .withQueryParam("year", equalTo("2012")))
-                .willReturn(response));
-
-        List<Movie> movies = moviesRestClient.retrieveMovieByYear(year);
-
-        assertEquals(movies.size(), 2);
+        assertEquals(2, movies.size());
         movies.forEach(movie -> assertEquals(2012, movie.getYear()));
     }
 
     @Test
-    @DisplayName("GET movie by year NOT FOUND")
+    @DisplayName("GET movies by year — 404 not found")
     void retrieveMovieByYearNotFoundTest() {
-        var response = aResponse()
-                .withStatus(HttpStatus.NOT_FOUND.value())
-                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .withHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .withBodyFile("404-movieyear.json");
+        wireMock.stubFor(get(urlPathEqualTo(MOVIE_BY_YEAR_QUERY_PARAM_V1))
+                .withQueryParam("year", equalTo("2050"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.NOT_FOUND.value())
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBodyFile("404-movieyear.json")));
 
-        int year = 2050;
-
-        stubFor((get(urlPathEqualTo(MOVIE_BY_YEAR_QUERY_PARAM_V1))
-                .withQueryParam("year", equalTo("2050")))
-                .willReturn(response));
-
-        var exception = assertThrows(MovieErrorResponseException.class, () -> moviesRestClient.retrieveMovieByYear(year), "MovieErrorResponseException is expected");
-        assertEquals("Not Found", exception.getMessage());
+        var ex = assertThrows(MovieErrorResponseException.class,
+                () -> moviesRestClient.retrieveMovieByYear(2050),
+                "MovieErrorResponseException expected for 404");
+        assertEquals("Not Found", ex.getMessage());
     }
 
     @Test
-    @DisplayName("POST movie https://wiremock.org/docs/request-matching/")
-    void addNewMovie() {
-        var response = aResponse()
-                .withStatus(HttpStatus.OK.value())
-                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .withHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .withBodyFile("add-movie.json");
+    @DisplayName("POST add new movie — static stub body")
+    void addNewMovieTest() {
+        wireMock.stubFor(post(urlPathEqualTo(ADD_MOVIE_V1))
+                .withRequestBody(matchingJsonPath("$.name", equalTo("Eternals")))
+                .withRequestBody(matchingJsonPath("$.cast", containing("Salma")))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBodyFile("add-movie.json")));
 
-        stubFor((post(urlPathEqualTo(ADD_MOVIE_V1))
-                .withRequestBody(matchingJsonPath(("$.name"), equalTo("Eternals"))) // verify if field name exists and value matches
-                .withRequestBody(matchingJsonPath(("$.cast"), containing("Salma"))) // verify if field cast exists and value matches
-                .willReturn(response)));
+        Movie movie = new Movie(12L, "Eternals", 2021,
+                "Angelina Jolie, Salma Hayek, Gemma Chan", LocalDate.of(2021, 10, 18));
 
-        LocalDate releaseDate = LocalDate.of(2021, 10, 18);
-        Movie movie = new Movie(12L, "Eternals", 2021, "Angelina Jolie, Salma Hayek, Gemma Chan", releaseDate);
+        Movie created = moviesRestClient.addNewMovie(movie);
 
-        Movie movieCreated = moviesRestClient.addNewMovie(movie);
-
-        assertNotNull(movieCreated);
-        assertEquals(movieCreated.getName(), "Eternals");
-        assertEquals(movieCreated.getYear(), 2021);
-        assertEquals(movieCreated.getCast(), "Angelina Jolie, Salma Hayek, Gemma Chan");
+        assertNotNull(created);
+        assertEquals("Eternals", created.getName());
+        assertEquals(2021, created.getYear());
     }
 
     @Test
-    @DisplayName("POST movie")
-    void addNewMovieUsingDynamicResponseTemplate() {
-        var response = aResponse()
-                .withStatus(HttpStatus.OK.value())
-                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .withHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .withBodyFile("add-movie-byTemplate.json");
+    @DisplayName("POST add new movie — response template echoes request body fields")
+    void addNewMovieDynamicTemplateTest() {
+        wireMock.stubFor(post(urlPathEqualTo(ADD_MOVIE_V1))
+                .withRequestBody(matchingJsonPath("$.name", equalTo("Eternals")))
+                .withRequestBody(matchingJsonPath("$.cast", containing("Salma")))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBodyFile("add-movie-byTemplate.json")));
 
-        stubFor((post(urlPathEqualTo(ADD_MOVIE_V1))
-                .withRequestBody(matchingJsonPath(("$.name"), equalTo("Eternals"))) // verify if field name exists and value matches
-                .withRequestBody(matchingJsonPath(("$.cast"), containing("Salma"))) // verify if field cast exists and value matches
-                .willReturn(response)));
+        Movie movie = new Movie(12L, "Eternals", 2021,
+                "Angelina Jolie, Salma Hayek, Gemma Chan", LocalDate.of(2021, 10, 18));
 
-        LocalDate releaseDate = LocalDate.of(2021, 10, 18);
-        Movie movie = new Movie(12L, "Eternals", 2021, "Angelina Jolie, Salma Hayek, Gemma Chan", releaseDate);
+        Movie created = moviesRestClient.addNewMovie(movie);
 
-        Movie movieCreated = moviesRestClient.addNewMovie(movie);
-
-        assertNotNull(movieCreated);
-        assertEquals(movieCreated.getName(), "Eternals");
-        assertEquals(movieCreated.getYear(), 2021);
-        assertEquals(movieCreated.getCast(), "Angelina Jolie, Salma Hayek, Gemma Chan");
+        assertNotNull(created);
+        assertEquals("Eternals", created.getName());
+        assertEquals(2021, created.getYear());
     }
 
     @Test
-    @DisplayName("POST movie with missing name")
-    void addNewMovieUsingWithMissingName() {
-        var response = aResponse()
-                .withStatus(HttpStatus.BAD_REQUEST.value())
-                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .withHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .withBodyFile("400-createMovie-badRequest.json");
+    @DisplayName("POST add movie with missing name — 400 bad request")
+    void addNewMovieMissingNameTest() {
+        wireMock.stubFor(post(urlPathEqualTo(ADD_MOVIE_V1))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.BAD_REQUEST.value())
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBodyFile("400-createMovie-badRequest.json")));
 
-        stubFor((post(urlPathEqualTo(ADD_MOVIE_V1))
-                .willReturn(response)));
+        Movie movie = new Movie(12L, "", 2021,
+                "Angelina Jolie, Salma Hayek, Gemma Chan", LocalDate.of(2021, 10, 18));
 
-        LocalDate releaseDate = LocalDate.of(2021, 10, 18);
-        Movie movie = new Movie(12L, "", 2021, "Angelina Jolie, Salma Hayek, Gemma Chan", releaseDate);
-
-        var exception = assertThrows(MovieErrorResponseException.class, () -> moviesRestClient.addNewMovie(movie), "MovieErrorResponseException is expected");
-        assertEquals("Bad Request", exception.getMessage());
+        var ex = assertThrows(MovieErrorResponseException.class,
+                () -> moviesRestClient.addNewMovie(movie));
+        assertEquals("Bad Request", ex.getMessage());
     }
 
     @Test
-    @DisplayName("PUT movie")
-    void updateMovie() {
-        var response = aResponse()
-                .withStatus(HttpStatus.OK.value())
-                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .withHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .withBodyFile("updateMovie.json");
+    @DisplayName("PUT update movie")
+    void updateMovieTest() {
+        wireMock.stubFor(put(urlPathMatching("/movieservice/v1/movie/[0-9]+"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBodyFile("updateMovie.json")));
 
-        stubFor((put(urlPathMatching("/movieservice/v1/movie/[0-9]+")))
-                .willReturn(response));
+        Movie movie = new Movie(11L, "Eternals", 2021, "Lia McHugh", LocalDate.of(2021, 10, 18));
 
-        LocalDate releaseDate = LocalDate.of(2021, 10, 18);
-        Movie movie = new Movie(11L, "Eternals", 2021, "Lia McHugh", releaseDate);
+        Movie updated = moviesRestClient.updateMovie(11, movie);
 
-        Movie movieCreated = moviesRestClient.updateMovie(11, movie);
-
-        assertNotNull(movieCreated);
-        assertEquals(movieCreated.getMovie_id(), 11L);
-        assertEquals(movieCreated.getName(), "Eternals");
-        assertEquals(movieCreated.getYear(), 2021);
-        assertEquals(movieCreated.getCast(), "Angelina Jolie, Salma Hayek, Gemma Chan, Lia McHugh");
+        assertNotNull(updated);
+        assertEquals(11L, updated.getMovie_id());
+        assertEquals("Eternals", updated.getName());
+        assertTrue(updated.getCast().contains("Lia McHugh"));
     }
 
     @Test
-    @DisplayName("PUT movie")
-    void updateMovieWithWrongMovieID() {
-        var response = aResponse()
-                .withStatus(HttpStatus.NOT_FOUND.value())
-                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .withHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .withBodyFile("updateMovie.json");
+    @DisplayName("PUT update movie — 404 wrong id")
+    void updateMovieWrongIdTest() {
+        wireMock.stubFor(put(urlPathMatching("/movieservice/v1/movie/[0-9]+"))
+                .withRequestBody(matchingJsonPath("$.cast", containing("ABC")))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.NOT_FOUND.value())
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBodyFile("404-movieid.json")));
 
-        stubFor((put(urlPathMatching("/movieservice/v1/movie/[0-9]+"))
-                .withRequestBody(matchingJsonPath(("$.cast"), containing("ABC")))
-                .willReturn(response))
-        );
+        Movie movie = new Movie(11L, "Eternals", 2021, "ABC", LocalDate.of(2021, 10, 18));
 
-        LocalDate releaseDate = LocalDate.of(2021, 10, 18);
-        Movie movie = new Movie(11L, "Eternals", 2021, "ABC", releaseDate);
-
-        MovieErrorResponseException movieErrorResponseException = assertThrows(MovieErrorResponseException.class, () -> moviesRestClient.updateMovie(22, movie), "MovieErrorResponse was expected");
-        assertEquals("Not Found", movieErrorResponseException.getMessage());
+        var ex = assertThrows(MovieErrorResponseException.class,
+                () -> moviesRestClient.updateMovie(22, movie));
+        assertEquals("Not Found", ex.getMessage());
     }
 
     @Test
-    @DisplayName("DELETE movie by movie id")
-    void deleteMovieById() {
-        var response = aResponse()
-                .withStatus(HttpStatus.OK.value())
-                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .withHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .withBodyFile("add-movie-byTemplate.json");
+    @DisplayName("DELETE movie by id")
+    void deleteMovieByIdTest() {
+        wireMock.stubFor(post(urlPathEqualTo(ADD_MOVIE_V1))
+                .withRequestBody(matchingJsonPath("$.name", equalTo("Eternals")))
+                .withRequestBody(matchingJsonPath("$.cast", containing("Salma")))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBodyFile("add-movie-byTemplate.json")));
 
-        stubFor((post(urlPathEqualTo(ADD_MOVIE_V1))
-                .withRequestBody(matchingJsonPath(("$.name"), equalTo("Eternals"))) // verify if field name exists and value matches
-                .withRequestBody(matchingJsonPath(("$.cast"), containing("Salma"))) // verify if field cast exists and value matches
-                .willReturn(response)));
+        wireMock.stubFor(delete(urlPathMatching("/movieservice/v1/movie/[0-9]+"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withBody("Movie Deleted Successfully")));
 
-        LocalDate releaseDate = LocalDate.of(2021, 10, 18);
-        Movie movie = new Movie(15L, "Eternals", 2021, "Angelina Jolie, Salma Hayek, Gemma Chan", releaseDate);
-
+        Movie movie = new Movie(15L, "Eternals", 2021,
+                "Angelina Jolie, Salma Hayek, Gemma Chan", LocalDate.of(2021, 10, 18));
         moviesRestClient.addNewMovie(movie);
 
-        response = aResponse()
-                .withStatus(HttpStatus.OK.value())
-                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .withHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .withBody("Movie Deleted Successfully");
-
-        stubFor((delete(urlPathMatching("/movieservice/v1/movie/[0-9]+"))
-                .willReturn(response)));
-
-        var deleteResponse = moviesRestClient.deleteMovieById(15);
-
-        assertEquals(deleteResponse, "Movie Deleted Successfully");
+        var result = moviesRestClient.deleteMovieById(15);
+        assertEquals("Movie Deleted Successfully", result);
     }
 
     @Test
-    @DisplayName("DELETE movie with a invalid movie id")
-    void deleteMovieWithAInvalidMovieId() {
-        var response = aResponse()
-                .withStatus(HttpStatus.NOT_FOUND.value())
-                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .withHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .withBodyFile("404-movieid.json");
+    @DisplayName("DELETE movie by id — 404 invalid id")
+    void deleteMovieInvalidIdTest() {
+        wireMock.stubFor(delete(urlPathMatching("/movieservice/v1/movie/[0-9]+"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.NOT_FOUND.value())
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBodyFile("404-movieid.json")));
 
-        stubFor((delete(urlPathMatching("/movieservice/v1/movie/[0-9]+"))
-                .willReturn(response)));
-
-        MovieErrorResponseException movieErrorResponseException = assertThrows(MovieErrorResponseException.class, () -> moviesRestClient.deleteMovieById(100), "MovieErrorResponse exception expected");
-        assertEquals("Not Found", movieErrorResponseException.getMessage());
+        var ex = assertThrows(MovieErrorResponseException.class,
+                () -> moviesRestClient.deleteMovieById(100));
+        assertEquals("Not Found", ex.getMessage());
     }
 
     @Test
-    @DisplayName("DELETE movie by name. Allows you to test a REST API which is not yet created")
-    void deleteMovieByName() {
-        // create a movie
-        var response = aResponse()
-                .withStatus(HttpStatus.OK.value())
-                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .withHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .withBodyFile("add-movie-byTemplate.json");
+    @DisplayName("DELETE movie by name — verifies WireMock call count (spy verification)")
+    void deleteMovieByNameTest() {
+        String movieName = "Eternals2";
 
-        stubFor((post(urlPathEqualTo(ADD_MOVIE_V1))
-                .withRequestBody(matchingJsonPath(("$.name"), equalTo("Eternals2"))) // verify if field name exists and value matches
-                .withRequestBody(matchingJsonPath(("$.cast"), containing("Salma"))) // verify if field cast exists and value matches
-                .willReturn(response)));
+        wireMock.stubFor(post(urlPathEqualTo(ADD_MOVIE_V1))
+                .withRequestBody(matchingJsonPath("$.name", equalTo(movieName)))
+                .withRequestBody(matchingJsonPath("$.cast", containing("Salma")))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBodyFile("add-movie-byTemplate.json")));
 
-        LocalDate releaseDate = LocalDate.of(2024, 10, 18);
-        Movie movie = new Movie(null, "Eternals2", 2024, "Angelina Jolie, Salma Hayek, Gemma Chan", releaseDate);
+        wireMock.stubFor(delete(urlEqualTo(MOVIE_BY_NAME_QUERY_PARAM_V1 + "?movieName=" + movieName))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withBody("Movie Deleted Successfully")));
 
+        Movie movie = new Movie(null, movieName, 2024,
+                "Angelina Jolie, Salma Hayek, Gemma Chan", LocalDate.of(2024, 10, 18));
         moviesRestClient.addNewMovie(movie);
 
-        // delete a movie
-        response = aResponse()
-                .withStatus(HttpStatus.OK.value())
-                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .withHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .withBody("Movie Deleted Successfully");
+        var result = moviesRestClient.deleteMovieByName(movieName);
+        assertEquals("movie " + movieName + " deleted successfully", result);
 
-        stubFor((delete(urlEqualTo(MOVIE_BY_NAME_QUERY_PARAM_V1 + "?movieName="+movie.getName()))
-                .willReturn(response)));
-
-        var deleteResponse = moviesRestClient.deleteMovieByName(movie.getName());
-
-        assertEquals(deleteResponse, "movie " + movie.getName() + " deleted successfully");
-
-        // verify the call is actually made to wiremock
-        verify(exactly(1), postRequestedFor(urlPathEqualTo(ADD_MOVIE_V1))
-                .withRequestBody(matchingJsonPath(("$.name"), equalTo("Eternals2"))) // verify if field name exists and value matches
-                .withRequestBody(matchingJsonPath(("$.cast"), containing("Salma"))));
-
-        verify(exactly(1), deleteRequestedFor(urlEqualTo(MOVIE_BY_NAME_QUERY_PARAM_V1 + "?movieName="+movie.getName())));
+        // WireMock spy — verify exact call counts
+        wireMock.verify(exactly(1), postRequestedFor(urlPathEqualTo(ADD_MOVIE_V1))
+                .withRequestBody(matchingJsonPath("$.name", equalTo(movieName))));
+        wireMock.verify(exactly(1),
+                deleteRequestedFor(urlEqualTo(MOVIE_BY_NAME_QUERY_PARAM_V1 + "?movieName=" + movieName)));
     }
-
-    @Test
-    @DisplayName("DELETE Selective Proxying movie by movie id")
-    void deleteMovieByIdSelectiveProxying() {
-        LocalDate releaseDate = LocalDate.of(2021, 10, 18);
-        Movie movie = new Movie(15L, "Eternals", 2021, "Angelina Jolie, Salma Hayek, Gemma Chan", releaseDate);
-
-        moviesRestClient.addNewMovie(movie);
-
-        var response = aResponse()
-                .withStatus(HttpStatus.OK.value())
-                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .withHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .withBody("Movie Deleted Successfully");
-
-        stubFor((delete(urlPathMatching("/movieservice/v1/movie/[0-9]+"))
-                .willReturn(response)));
-
-        var deleteResponse = moviesRestClient.deleteMovieById(15);
-
-        assertEquals(deleteResponse, "Movie Deleted Successfully");
-    }
-
 }

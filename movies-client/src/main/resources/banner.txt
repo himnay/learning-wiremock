@@ -1,0 +1,13 @@
+
+ __        ___          __  __            _
+ \ \      / (_)_ __ ___|  \/  | ___   ___| | __
+  \ \ /\ / /| | '__/ _ \ |\/| |/ _ \ / __| |/ /
+   \ V  V / | | | |  __/ |  | | (_) | (__|   <
+    \_/\_/  |_|_|  \___|_|  |_|\___/ \___|_|\_\
+
+  Learning WireMock :: Spring Boot ${spring-boot.version} :: Java ${java.version}
+
+  :: Project Metadata ::
+  - Name        : ${app.metadata.project-name}
+  - Description : ${app.metadata.description}
+  - Version     : ${app.metadata.version}

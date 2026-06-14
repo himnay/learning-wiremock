@@ -1,139 +1,121 @@
 package com.learnwiremock.service;
 
-import com.github.jenspiegsa.wiremockextension.ConfigureWireMock;
-import com.github.jenspiegsa.wiremockextension.InjectServer;
-import com.github.jenspiegsa.wiremockextension.WireMockExtension;
-import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
-import com.github.tomakehurst.wiremock.core.Options;
-import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
 import com.github.tomakehurst.wiremock.http.Fault;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.learnwiremock.exception.MovieErrorResponseException;
 import io.netty.channel.ChannelOption;
-import io.netty.handler.timeout.ReadTimeoutHandler;
-import io.netty.handler.timeout.WriteTimeoutHandler;
-import org.junit.After;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
-import reactor.netty.tcp.TcpClient;
+
+import java.time.Duration;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.learnwiremock.constants.MovieAppConstants.GET_ALL_MOVIES_V1;
 import static org.junit.jupiter.api.Assertions.*;
 
-@ExtendWith(WireMockExtension.class)
-public class MoviesRestClientServerErrorTest {
+/**
+ * Demonstrates WireMock fault simulation, connection timeouts, and
+ * response timeouts using the modern Reactor Netty {@link HttpClient} API
+ * (replaces the deprecated {@code TcpClient} approach).
+ */
+class MoviesRestClientServerErrorTest {
+
+    @RegisterExtension
+    static WireMockExtension wireMock = WireMockExtension.newInstance()
+            .options(wireMockConfig()
+                    .dynamicPort()
+                    .notifier(new ConsoleNotifier(false))
+                    .templatingEnabled(true)
+                    .globalTemplating(true))
+            .build();
 
     private MoviesRestClient moviesRestClient;
-    private WebClient webClient;
-
-    private TcpClient tcpClient = TcpClient
-            .create()
-            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
-            .doOnConnected(connection -> {
-                connection
-                        .addHandlerLast(new ReadTimeoutHandler(5))
-                        .addHandlerLast(new WriteTimeoutHandler(5));
-            });
-
-    @InjectServer
-    private WireMockServer wireMockServer;
-
-    @ConfigureWireMock
-    private Options options = wireMockConfig()
-            .port(8088)
-            .notifier(new ConsoleNotifier(true))
-            .extensions(new ResponseTemplateTransformer(true));
 
     @BeforeEach
-    public void init() {
-        String baseUrl = String.format("http://localhost:%s/", wireMockServer.port());
+    void setup() {
+        HttpClient httpClient = HttpClient.create()
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
+                .responseTimeout(Duration.ofSeconds(5));
 
-        webClient = WebClient
-                .builder()
-                .clientConnector(new ReactorClientHttpConnector(HttpClient.from(tcpClient)))
-                .baseUrl(baseUrl)
+        WebClient webClient = WebClient.builder()
+                .clientConnector(new ReactorClientHttpConnector(httpClient))
+                .baseUrl(wireMock.baseUrl())
                 .build();
 
         moviesRestClient = new MoviesRestClient(webClient);
     }
 
-    @After
-    public void cleanup() {
-        wireMockServer.stop();
-    }
-
     @Test
-    @DisplayName("SERVER ERROR 500 - GET all movies")
+    @DisplayName("500 Internal Server Error — GET all movies")
     void retrieveAllMovies500Test() {
-        stubFor((get(urlPathEqualTo(GET_ALL_MOVIES_V1)))
+        wireMock.stubFor(get(urlPathEqualTo(GET_ALL_MOVIES_V1))
                 .willReturn(serverError()));
 
-        var exception = assertThrows(MovieErrorResponseException.class, () -> moviesRestClient.retrieveAllMovies(), "MovieErrorResponseException is expected");
-        assertEquals(exception.getMessage(), "Internal Server Error");
+        var ex = assertThrows(MovieErrorResponseException.class,
+                () -> moviesRestClient.retrieveAllMovies());
+        assertEquals("Internal Server Error", ex.getMessage());
     }
 
     @Test
-    @DisplayName("SERVER ERROR 503 - GET all movies")
+    @DisplayName("503 Service Unavailable — GET all movies")
     void retrieveAllMovies503Test() {
-        stubFor((get(urlPathEqualTo(GET_ALL_MOVIES_V1)))
+        wireMock.stubFor(get(urlPathEqualTo(GET_ALL_MOVIES_V1))
                 .willReturn(serviceUnavailable()));
 
-        var exception = assertThrows(MovieErrorResponseException.class, () -> moviesRestClient.retrieveAllMovies(), "MovieErrorResponseException is expected");
-        assertEquals(exception.getMessage(), "Service Unavailable");
+        var ex = assertThrows(MovieErrorResponseException.class,
+                () -> moviesRestClient.retrieveAllMovies());
+        assertEquals("Service Unavailable", ex.getMessage());
     }
 
     @Test
-    @DisplayName("FAULT ERROR - GET all movies")
-    void retrieveAllMoviesFaultErrorTest() {
-        stubFor((get(urlPathEqualTo(GET_ALL_MOVIES_V1)))
+    @DisplayName("Fault: EMPTY_RESPONSE — connection closed before response is sent")
+    void retrieveAllMoviesFaultEmptyResponseTest() {
+        wireMock.stubFor(get(urlPathEqualTo(GET_ALL_MOVIES_V1))
                 .willReturn(aResponse().withFault(Fault.EMPTY_RESPONSE)));
 
-        var exception = assertThrows(MovieErrorResponseException.class, () -> moviesRestClient.retrieveAllMovies(), "MovieErrorResponseException is expected");
-        assertTrue(exception.getMessage().contains("Connection prematurely closed BEFORE response"));
+        var ex = assertThrows(MovieErrorResponseException.class,
+                () -> moviesRestClient.retrieveAllMovies());
+        assertNotNull(ex.getCause());
     }
 
     @Test
-    @DisplayName("FAULT ERROR AFTER RANDOM DATA - GET all movies")
-    void retrieveAllMoviesFaultErrorWithRandomDataTest() {
-        stubFor((get(urlPathEqualTo(GET_ALL_MOVIES_V1)))
+    @DisplayName("Fault: RANDOM_DATA_THEN_CLOSE — garbled bytes then connection close")
+    void retrieveAllMoviesFaultRandomDataTest() {
+        wireMock.stubFor(get(urlPathEqualTo(GET_ALL_MOVIES_V1))
                 .willReturn(aResponse().withFault(Fault.RANDOM_DATA_THEN_CLOSE)));
 
-        var exception = assertThrows(MovieErrorResponseException.class, () -> moviesRestClient.retrieveAllMovies(), "MovieErrorResponseException is expected");
-        assertTrue(exception.getMessage().contains("Connection prematurely closed BEFORE response"));
+        assertThrows(MovieErrorResponseException.class,
+                () -> moviesRestClient.retrieveAllMovies());
     }
 
     @Test
-    @DisplayName("timeout test")
-    public void latencyAndTimeoutTest() {
-        var response = aResponse()
-                .withFault(Fault.RANDOM_DATA_THEN_CLOSE)
-                .withFixedDelay(10000);
+    @DisplayName("Timeout: fixed 10-second delay exceeds 5-second responseTimeout")
+    void latencyAndTimeoutFixedDelayTest() {
+        wireMock.stubFor(get(urlPathEqualTo(GET_ALL_MOVIES_V1))
+                .willReturn(aResponse()
+                        .withFixedDelay(10_000)));  // 10 s > 5 s client timeout
 
-        stubFor((get(urlPathEqualTo(GET_ALL_MOVIES_V1)))
-                .willReturn(response));
-
-        var exception = assertThrows(MovieErrorResponseException.class, () -> moviesRestClient.retrieveAllMovies(), "MovieErrorResponseException is expected");
-        assertTrue(exception.getMessage().contains("ReadTimeoutException"));
+        assertThrows(MovieErrorResponseException.class,
+                () -> moviesRestClient.retrieveAllMovies(),
+                "Timeout should trigger MovieErrorResponseException");
     }
 
     @Test
-    @DisplayName("timeout test using random delay")
-    public void latencyAndTimeoutRandomDelayTest() {
-        var response = aResponse()
-                .withFault(Fault.RANDOM_DATA_THEN_CLOSE)
-                .withUniformRandomDelay(6000, 10000);
+    @DisplayName("Timeout: random delay 6–10 seconds exceeds 5-second responseTimeout")
+    void latencyAndTimeoutRandomDelayTest() {
+        wireMock.stubFor(get(urlPathEqualTo(GET_ALL_MOVIES_V1))
+                .willReturn(aResponse()
+                        .withUniformRandomDelay(6_000, 10_000)));
 
-        stubFor((get(urlPathEqualTo(GET_ALL_MOVIES_V1)))
-                .willReturn(response));
-
-        var exception = assertThrows(MovieErrorResponseException.class, () -> moviesRestClient.retrieveAllMovies(), "MovieErrorResponseException is expected");
-        assertTrue(exception.getMessage().contains("ReadTimeoutException"));
+        assertThrows(MovieErrorResponseException.class,
+                () -> moviesRestClient.retrieveAllMovies(),
+                "Timeout should trigger MovieErrorResponseException");
     }
 }

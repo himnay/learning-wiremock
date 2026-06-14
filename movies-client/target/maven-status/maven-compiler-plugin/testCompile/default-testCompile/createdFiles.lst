@@ -1,0 +1,3 @@
+com/learnwiremock/service/MoviesRestClientServerErrorTest.class
+com/learnwiremock/service/MoviesRestClientTest.class
+com/learnwiremock/service/MoviesRestClientSelectiveProxyingTest.class
