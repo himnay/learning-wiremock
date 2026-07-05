@@ -38,3 +38,4 @@ out/
 
 ### Maven ###
 target/
+**/target

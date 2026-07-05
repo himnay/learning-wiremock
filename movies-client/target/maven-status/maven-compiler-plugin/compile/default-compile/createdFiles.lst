@@ -1,9 +1,0 @@
-META-INF/spring-configuration-metadata.json
-com/learnwiremock/exception/MovieErrorResponseException.class
-com/learnwiremock/dto/Movie.class
-com/learnwiremock/dto/Movie$MovieBuilder.class
-com/learnwiremock/config/WebClientConfig.class
-com/learnwiremock/config/MoviesClientProperties.class
-com/learnwiremock/constants/MovieAppConstants.class
-com/learnwiremock/LearnWiremockApplication.class
-com/learnwiremock/service/MoviesRestClient.class

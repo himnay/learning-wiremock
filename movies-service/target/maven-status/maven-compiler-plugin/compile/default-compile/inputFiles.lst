@@ -1,8 +1,0 @@
-/Users/himansu/REPOS/learnig-wiremock/movies-service/src/main/java/com/learnwiremock/movies/MoviesServiceApplication.java
-/Users/himansu/REPOS/learnig-wiremock/movies-service/src/main/java/com/learnwiremock/movies/config/LoggingConfig.java
-/Users/himansu/REPOS/learnig-wiremock/movies-service/src/main/java/com/learnwiremock/movies/controller/MovieController.java
-/Users/himansu/REPOS/learnig-wiremock/movies-service/src/main/java/com/learnwiremock/movies/domain/Movie.java
-/Users/himansu/REPOS/learnig-wiremock/movies-service/src/main/java/com/learnwiremock/movies/exception/GlobalExceptionHandler.java
-/Users/himansu/REPOS/learnig-wiremock/movies-service/src/main/java/com/learnwiremock/movies/exception/MovieNotFoundException.java
-/Users/himansu/REPOS/learnig-wiremock/movies-service/src/main/java/com/learnwiremock/movies/repository/MovieRepository.java
-/Users/himansu/REPOS/learnig-wiremock/movies-service/src/main/java/com/learnwiremock/movies/service/MovieService.java
