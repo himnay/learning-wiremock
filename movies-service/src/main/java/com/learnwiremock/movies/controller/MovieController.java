@@ -37,7 +37,7 @@ public class MovieController {
     }
 
     @PostMapping("/movie")
-    @ResponseStatus(HttpStatus.OK)
+    @ResponseStatus(HttpStatus.CREATED)
     public Movie addMovie(@RequestBody @Valid Movie movie) {
         return movieService.addMovie(movie);
     }

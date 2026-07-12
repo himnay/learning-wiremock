@@ -25,7 +25,7 @@ consumer-driven contract testing framework that *generates* WireMock stubs from 
    - [Producer side: generated verification tests](#34-producer-side-generated-verification-tests)
    - [Consumer side: Stub Runner](#35-consumer-side-stub-runner)
    - [Messaging contracts](#36-messaging-contracts)
-   - [How this repo uses spring-cloud-contract-wiremock](#37-how-this-repo-uses-spring-cloud-contract-wiremock)
+   - [Spring Cloud Contract in this repo](#37-spring-cloud-contract-in-this-repo)
 4. [WireMock vs Spring Cloud Contract vs Pact](#4-wiremock-vs-spring-cloud-contract-vs-pact)
 5. [Project modules & structure](#5-project-modules--structure)
 6. [Running everything](#6-running-everything)
@@ -299,17 +299,48 @@ Contract.make {
 Producer build verifies the message really gets sent; consumer uses `StubTrigger` to fire
 `movie_created` and assert its listener handles the payload.
 
-### 3.7 How this repo uses spring-cloud-contract-wiremock
+### 3.7 Spring Cloud Contract in this repo
 
 `movies-client` pulls WireMock through the **`spring-cloud-contract-wiremock`** artifact —
-the Spring-managed WireMock integration. Even without full contracts, it gives:
+the Spring-managed WireMock integration. Even without contracts, it gives:
 
 - BOM-managed WireMock version aligned with Spring Boot
 - `@AutoConfigureWireMock(port = 0)` — WireMock lifecycle wired into the Spring test context, `${wiremock.server.port}` property injection
-- a straight upgrade path: add contracts to a producer later, swap hand-written stubs for `@AutoConfigureStubRunner`, tests barely change
 
-This repo's tests use the plain `WireMockExtension` for fine-grained control (section 7),
-which is the recommended style for client-focused test suites.
+This repo's hand-written stub tests (section 7) use the plain `WireMockExtension` for
+fine-grained control over faults/delays/templating — that's the right tool for exercising
+client error-handling paths a contract can't express. Alongside them, `movies-service` now
+carries real **producer contracts** and `movies-client` a **stub-runner consumer test**, so
+both styles live side by side:
+
+```
+learning-wiremock/
+├── movies-service/                                       # producer
+│   └── src/test/
+│       ├── resources/contracts/movies/                   # Groovy DSL contracts
+│       │   ├── shouldReturnMovieById.groovy
+│       │   ├── shouldReturn404ForUnknownMovieId.groovy
+│       │   └── shouldCreateMovie.groovy
+│       └── java/.../ContractVerifierBase.java             # RestAssuredMockMvc base class
+└── movies-client/                                        # consumer
+    └── src/test/java/.../MoviesRestClientContractIntgTest.java
+                                                             # @AutoConfigureStubRunner(LOCAL)
+```
+
+Run it:
+
+```bash
+mvn install -pl movies-service          # generates + runs 3 contract tests, publishes
+                                         # movies-service-<version>-stubs.jar to ~/.m2
+mvn test -pl movies-client              # includes MoviesRestClientContractIntgTest,
+                                         # which boots WireMock loaded with those stubs
+```
+
+Both green confirms real end-to-end agreement: the producer's controller was verified
+against the exact same request/response shapes the consumer's stub-runner test replays.
+(`spring-cloud-contract-maven-plugin` version is pinned to match whatever
+`spring-cloud-dependencies` — via `learning-bom` — manages; check `movies-service/pom.xml`
+if bumping the Spring Cloud train.)
 
 ## 4. WireMock vs Spring Cloud Contract vs Pact
 
