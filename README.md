@@ -11,14 +11,14 @@ consumer-driven contract testing framework that *generates* WireMock stubs from 
 
 ## Table of contents
 
-1. [Why mock HTTP services at all?](#1-why-mock-http-services-at-all)
-2. [WireMock — the deep dive](#2-wiremock--the-deep-dive)
+1. 🌐 [Why mock HTTP services at all?](#1-why-mock-http-services-at-all)
+2. 🤝 [WireMock — the deep dive](#2-wiremock--the-deep-dive)
    - [Architecture](#21-architecture)
    - [Deployment modes](#22-deployment-modes)
    - [Request matching reference](#23-request-matching-reference)
    - [Record & playback](#24-record--playback)
    - [Near misses](#25-near-misses)
-3. [Spring Cloud Contract — the deep dive](#3-spring-cloud-contract--the-deep-dive)
+3. ☁️ [Spring Cloud Contract — the deep dive](#3-spring-cloud-contract--the-deep-dive)
    - [The dual-consumer problem contracts solve](#31-the-dual-consumer-problem-contracts-solve)
    - [How the flow works](#32-how-the-flow-works)
    - [Writing a contract](#33-writing-a-contract)
@@ -26,14 +26,14 @@ consumer-driven contract testing framework that *generates* WireMock stubs from 
    - [Consumer side: Stub Runner](#35-consumer-side-stub-runner)
    - [Messaging contracts](#36-messaging-contracts)
    - [Spring Cloud Contract in this repo](#37-spring-cloud-contract-in-this-repo)
-4. [WireMock vs Spring Cloud Contract vs Pact](#4-wiremock-vs-spring-cloud-contract-vs-pact)
-5. [Project modules & structure](#5-project-modules--structure)
-6. [Running everything](#6-running-everything)
-7. [WireMock 3.x — features covered in the tests](#7-wiremock-3x--features-covered-in-the-tests)
-8. [WireMock 3.x best practices](#8-wiremock-3x-best-practices)
-9. [Design patterns used](#9-design-patterns-used)
-10. [Observability (Prometheus + Grafana)](#10-observability-prometheus--grafana)
-11. [Further reading](#11-further-reading)
+4. ☁️ [WireMock vs Spring Cloud Contract vs Pact](#4-wiremock-vs-spring-cloud-contract-vs-pact)
+5. 🏗️ [Project modules & structure](#5-project-modules--structure)
+6. 🚀 [Running everything](#6-running-everything)
+7. 🧪 [WireMock 3.x — features covered in the tests](#7-wiremock-3x--features-covered-in-the-tests)
+8. 🤝 [WireMock 3.x best practices](#8-wiremock-3x-best-practices)
+9. 🏗️ [Design patterns used](#9-design-patterns-used)
+10. 📈 [Observability (Prometheus + Grafana)](#10-observability-prometheus--grafana)
+11. 📚 [Further reading](#11-further-reading)
 
 ---
 
