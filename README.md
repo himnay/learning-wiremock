@@ -37,7 +37,8 @@ consumer-driven contract testing framework that *generates* WireMock stubs from 
 
 ---
 
-## 1. Why mock HTTP services at all?
+<a id="1-why-mock-http-services-at-all"></a>
+## 1. 🌐 Why mock HTTP services at all?
 
 Testing a REST *client* against the real downstream service is slow, flaky and often
 impossible: the service may not exist yet, may cost money per call, may have no way to
@@ -69,7 +70,8 @@ What that buys you:
 The catch: a stub is only as correct as your assumption about the real API. That gap is
 exactly what **contract testing** (section 3) closes.
 
-## 2. WireMock — the deep dive
+<a id="2-wiremock--the-deep-dive"></a>
+## 2. 🤝 WireMock — the deep dive
 
 WireMock ([source](https://github.com/wiremock/wiremock), [docs](https://wiremock.org/docs/overview/))
 is an HTTP mock server: a real Jetty-based server that answers requests according to
@@ -156,7 +158,8 @@ every registered stub and reports the closest ones ([verifying docs](https://wir
 A one-character path typo shows up as a near-miss diff instead of a mystery failure.
 `ConsoleNotifier(true)` prints these during test runs — turn it on when debugging, off in CI.
 
-## 3. Spring Cloud Contract — the deep dive
+<a id="3-spring-cloud-contract--the-deep-dive"></a>
+## 3. ☁️ Spring Cloud Contract — the deep dive
 
 ### 3.1 The dual-consumer problem contracts solve
 
@@ -342,7 +345,8 @@ against the exact same request/response shapes the consumer's stub-runner test r
 `spring-cloud-dependencies` — via `learning-bom` — manages; check `movies-service/pom.xml`
 if bumping the Spring Cloud train.)
 
-## 4. WireMock vs Spring Cloud Contract vs Pact
+<a id="4-wiremock-vs-spring-cloud-contract-vs-pact"></a>
+## 4. ☁️ WireMock vs Spring Cloud Contract vs Pact
 
 | | **WireMock** | **Spring Cloud Contract** | **Pact** |
 |---|---|---|---|
@@ -359,7 +363,8 @@ They compose: **WireMock for how your client behaves under failure; Spring Cloud
 whether producer and consumer still agree.** Fault injection (section 7.7–7.8) is something
 contracts can't express — you need raw WireMock for that.
 
-## 5. Project modules & structure
+<a id="5-project-modules--structure"></a>
+## 5. 🏗️ Project modules & structure
 
 | Module | Description |
 |---|---|
@@ -412,7 +417,8 @@ learning-wiremock/
             └── resources/__files/                           # WireMock response body files
 ```
 
-## 6. Running everything
+<a id="6-running-everything"></a>
+## 6. 🚀 Running everything
 
 ### Start movies-service + observability stack
 
@@ -458,7 +464,8 @@ WireMock starts on a **random port** per test class — no port conflicts, paral
 
 ---
 
-## 7. WireMock 3.x — features covered in the tests
+<a id="7-wiremock-3x--features-covered-in-the-tests"></a>
+## 7. 🧪 WireMock 3.x — features covered in the tests
 
 ### 7.1 JUnit 5 native extension (best practice)
 
@@ -596,7 +603,8 @@ wireMock.verify(exactly(1),
 
 ---
 
-## 8. WireMock 3.x best practices
+<a id="8-wiremock-3x-best-practices"></a>
+## 8. 🤝 WireMock 3.x best practices
 
 | Practice | Why |
 |---|---|
@@ -613,7 +621,8 @@ wireMock.verify(exactly(1),
 
 ---
 
-## 9. Design patterns used
+<a id="9-design-patterns-used"></a>
+## 9. 🏗️ Design patterns used
 
 | Pattern | Where |
 |---|---|
@@ -624,7 +633,8 @@ wireMock.verify(exactly(1),
 
 ---
 
-## 10. Observability (Prometheus + Grafana)
+<a id="10-observability-prometheus--grafana"></a>
+## 10. 📈 Observability (Prometheus + Grafana)
 
 In Grafana:
 1. Add datasource → Prometheus → `http://prometheus:9090`
@@ -634,7 +644,8 @@ Prometheus scrapes `host.docker.internal:8083/actuator/prometheus` every 10 s.
 
 ---
 
-## 11. Further reading
+<a id="11-further-reading"></a>
+## 11. 📚 Further reading
 
 - [WireMock docs](https://wiremock.org/docs/overview/) · [stubbing](https://wiremock.org/docs/stubbing/) · [request matching](https://wiremock.org/docs/request-matching/) · [verifying](https://wiremock.org/docs/verifying/) · [GitHub](https://github.com/wiremock/wiremock)
 - [Spring Cloud Contract project](https://spring.io/projects/spring-cloud-contract/) · [Baeldung intro](https://www.baeldung.com/spring-cloud-contract) · [Okta: better integration testing with SCC](https://developer.okta.com/blog/2022/02/01/spring-cloud-contract)
