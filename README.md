@@ -61,11 +61,15 @@ flowchart LR
 
 What that buys you:
 
+<ul>
+
 - **Determinism** — the "service" always answers exactly what the stub says
 - **Error-path coverage** — 404s, 500s, malformed bodies, connection resets, 10-second delays: all one line of code away
 - **Speed** — no network, no docker, no shared environments; a full suite runs in seconds
 - **Independence** — client and service teams develop in parallel
 - **Verification** — WireMock records every request, so tests can assert *what the client actually sent* (spy semantics)
+
+</ul>
 
 The catch: a stub is only as correct as your assumption about the real API. That gap is
 exactly what **contract testing** (section 3) closes.
@@ -170,9 +174,13 @@ environments catch this, but slowly and expensively.
 
 **Contract testing** makes the belief explicit and machine-checked on *both* sides:
 
+<ul>
+
 - a **contract** file defines request/response pairs
 - the **producer's build fails** if its real controllers can't satisfy the contract (generated verification tests)
 - the **consumer tests** against stubs *generated from the same contract* — so a green consumer build means compatibility with what the producer actually verified
+
+</ul>
 
 ### 3.2 How the flow works
 
@@ -199,8 +207,12 @@ sequenceDiagram
 
 Two collaboration models:
 
+<ul>
+
 - **Producer-driven** (default): contracts live in the producer repo; consumers consume published stubs
 - **Consumer-driven (CDC)**: consumers PR their expectations into the producer's contract folder (or a central contracts repo); producer's build then guarantees every consumer's expectation
+
+</ul>
 
 ### 3.3 Writing a contract
 
@@ -307,8 +319,12 @@ Producer build verifies the message really gets sent; consumer uses `StubTrigger
 `movies-client` pulls WireMock through the **`spring-cloud-contract-wiremock`** artifact —
 the Spring-managed WireMock integration. Even without contracts, it gives:
 
+<ul>
+
 - BOM-managed WireMock version aligned with Spring Boot
 - `@AutoConfigureWireMock(port = 0)` — WireMock lifecycle wired into the Spring test context, `${wiremock.server.port}` property injection
+
+</ul>
 
 This repo's hand-written stub tests (section 7) use the plain `WireMockExtension` for
 fine-grained control over faults/delays/templating — that's the right tool for exercising
@@ -647,8 +663,12 @@ Prometheus scrapes `host.docker.internal:8083/actuator/prometheus` every 10 s.
 <a id="11-further-reading"></a>
 ## 11. 📚 Further reading
 
+<ul>
+
 - [WireMock docs](https://wiremock.org/docs/overview/) · [stubbing](https://wiremock.org/docs/stubbing/) · [request matching](https://wiremock.org/docs/request-matching/) · [verifying](https://wiremock.org/docs/verifying/) · [GitHub](https://github.com/wiremock/wiremock)
 - [Spring Cloud Contract project](https://spring.io/projects/spring-cloud-contract/) · [Baeldung intro](https://www.baeldung.com/spring-cloud-contract) · [Okta: better integration testing with SCC](https://developer.okta.com/blog/2022/02/01/spring-cloud-contract)
 - [SCC stubs in Docker for non-JVM consumers](https://paradigma-digital.medium.com/using-the-stubs-generated-with-spring-cloud-contract-in-docker-ce4a262841be)
 - [Consumer-driven contract testing with SCC — DZone](https://dzone.com/articles/consumer-driven-contract-testing-with-spring-cloud)
 - [WireMock advanced usage patterns](https://medium.com/javarevisited/wiremock-advanced-usage-patterns-c394ad2e3b78)
+
+</ul>
