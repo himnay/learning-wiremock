@@ -1,173 +1,180 @@
 {
   "_type": "export",
   "__export_format": 4,
-  "__export_date": "2026-06-13T00:00:00.000Z",
-  "__export_source": "insomnia.desktop.app:v10.3.0",
+  "__export_date": "2026-07-14T00:00:00.000Z",
+  "__export_source": "insomnia.desktop.app:v12.0.0",
   "resources": [
     {
-      "_id": "wrk_learning_wiremock",
+      "_id": "wrk_learning_0000000000000000000000000001",
       "_type": "workspace",
-      "name": "learning-wiremock",
-      "description": "Movies REST API — targets the movies-restful-service JAR on port 8081",
-      "scope": "collection"
+      "parentId": null,
+      "name": "learning-wiremock :: REST",
+      "scope": "collection",
+      "created": 1784063187842,
+      "modified": 1784063187842
     },
     {
-      "_id": "env_learning_wiremock_base",
+      "_id": "env_learning_0000000000000000000000000002",
       "_type": "environment",
-      "parentId": "wrk_learning_wiremock",
+      "parentId": "wrk_learning_0000000000000000000000000001",
       "name": "Base Environment",
       "data": {
-        "base_url": "http://localhost:8081",
-        "movie_id": "1",
-        "movie_name": "Avengers",
-        "movie_year": "2012"
+        "host": "localhost"
+      },
+      "created": 1784063187842,
+      "modified": 1784063187842
+    },
+    {
+      "_id": "fld_learning_0000000000000000000000000003",
+      "_type": "request_group",
+      "parentId": "wrk_learning_0000000000000000000000000001",
+      "name": "movies-service (:8081)",
+      "created": 1784063187842,
+      "modified": 1784063187842
+    },
+    {
+      "_id": "req_learning_0000000000000000000000000004",
+      "_type": "request",
+      "parentId": "fld_learning_0000000000000000000000000003",
+      "name": "DELETE /movieservice/v1/movie/{id}",
+      "method": "DELETE",
+      "url": "http://{{ _.host }}:8081/movieservice/v1/movie/<id>",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "metaSortKey": 0,
+      "created": 1784063187842,
+      "modified": 1784063187842
+    },
+    {
+      "_id": "req_learning_0000000000000000000000000005",
+      "_type": "request",
+      "parentId": "fld_learning_0000000000000000000000000003",
+      "name": "DELETE /movieservice/v1/movieName",
+      "method": "DELETE",
+      "url": "http://{{ _.host }}:8081/movieservice/v1/movieName",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "metaSortKey": 100,
+      "created": 1784063187842,
+      "modified": 1784063187842
+    },
+    {
+      "_id": "req_learning_0000000000000000000000000006",
+      "_type": "request",
+      "parentId": "fld_learning_0000000000000000000000000003",
+      "name": "GET /movieservice/v1/allMovies",
+      "method": "GET",
+      "url": "http://{{ _.host }}:8081/movieservice/v1/allMovies",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "metaSortKey": 200,
+      "created": 1784063187842,
+      "modified": 1784063187842
+    },
+    {
+      "_id": "req_learning_0000000000000000000000000007",
+      "_type": "request",
+      "parentId": "fld_learning_0000000000000000000000000003",
+      "name": "GET /movieservice/v1/movie/{id}",
+      "method": "GET",
+      "url": "http://{{ _.host }}:8081/movieservice/v1/movie/<id>",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "metaSortKey": 300,
+      "created": 1784063187842,
+      "modified": 1784063187842
+    },
+    {
+      "_id": "req_learning_0000000000000000000000000008",
+      "_type": "request",
+      "parentId": "fld_learning_0000000000000000000000000003",
+      "name": "GET /movieservice/v1/movieName",
+      "method": "GET",
+      "url": "http://{{ _.host }}:8081/movieservice/v1/movieName",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "metaSortKey": 400,
+      "created": 1784063187842,
+      "modified": 1784063187842
+    },
+    {
+      "_id": "req_learning_0000000000000000000000000009",
+      "_type": "request",
+      "parentId": "fld_learning_0000000000000000000000000003",
+      "name": "GET /movieservice/v1/movieYear",
+      "method": "GET",
+      "url": "http://{{ _.host }}:8081/movieservice/v1/movieYear",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "metaSortKey": 500,
+      "created": 1784063187842,
+      "modified": 1784063187842
+    },
+    {
+      "_id": "req_learning_0000000000000000000000000010",
+      "_type": "request",
+      "parentId": "fld_learning_0000000000000000000000000003",
+      "name": "POST /movieservice/v1/movie",
+      "method": "POST",
+      "url": "http://{{ _.host }}:8081/movieservice/v1/movie",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "metaSortKey": 600,
+      "created": 1784063187842,
+      "modified": 1784063187842,
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
       }
     },
     {
-      "_id": "fld_movies_read",
-      "_type": "request_group",
-      "parentId": "wrk_learning_wiremock",
-      "name": "Movies — Read"
-    },
-    {
-      "_id": "fld_movies_write",
-      "_type": "request_group",
-      "parentId": "wrk_learning_wiremock",
-      "name": "Movies — Write"
-    },
-    {
-      "_id": "fld_actuator",
-      "_type": "request_group",
-      "parentId": "wrk_learning_wiremock",
-      "name": "Actuator (Spring Boot app port 8083)"
-    },
-    {
-      "_id": "req_get_all_movies",
+      "_id": "req_learning_0000000000000000000000000011",
       "_type": "request",
-      "parentId": "fld_movies_read",
-      "name": "GET all movies",
-      "method": "GET",
-      "url": "{{ _.base_url }}/movieservice/v1/allMovies",
-      "headers": [
-        { "name": "Accept", "value": "application/json" }
-      ]
-    },
-    {
-      "_id": "req_get_movie_by_id",
-      "_type": "request",
-      "parentId": "fld_movies_read",
-      "name": "GET movie by id",
-      "method": "GET",
-      "url": "{{ _.base_url }}/movieservice/v1/movie/{{ _.movie_id }}",
-      "headers": [
-        { "name": "Accept", "value": "application/json" }
-      ]
-    },
-    {
-      "_id": "req_get_movie_by_name",
-      "_type": "request",
-      "parentId": "fld_movies_read",
-      "name": "GET movies by name",
-      "method": "GET",
-      "url": "{{ _.base_url }}/movieservice/v1/movieName?movie_name={{ _.movie_name }}",
-      "headers": [
-        { "name": "Accept", "value": "application/json" }
-      ]
-    },
-    {
-      "_id": "req_get_movie_by_year",
-      "_type": "request",
-      "parentId": "fld_movies_read",
-      "name": "GET movies by year",
-      "method": "GET",
-      "url": "{{ _.base_url }}/movieservice/v1/movieYear?year={{ _.movie_year }}",
-      "headers": [
-        { "name": "Accept", "value": "application/json" }
-      ]
-    },
-    {
-      "_id": "req_post_movie",
-      "_type": "request",
-      "parentId": "fld_movies_write",
-      "name": "POST add movie",
-      "method": "POST",
-      "url": "{{ _.base_url }}/movieservice/v1/movie",
-      "body": {
-        "mimeType": "application/json",
-        "text": "{\n  \"name\": \"Eternals\",\n  \"year\": 2021,\n  \"cast\": \"Angelina Jolie, Salma Hayek, Gemma Chan\",\n  \"release_date\": \"2021-10-18\"\n}"
-      },
-      "headers": [
-        { "name": "Content-Type", "value": "application/json" },
-        { "name": "Accept", "value": "application/json" }
-      ]
-    },
-    {
-      "_id": "req_put_movie",
-      "_type": "request",
-      "parentId": "fld_movies_write",
-      "name": "PUT update movie",
+      "parentId": "fld_learning_0000000000000000000000000003",
+      "name": "PUT /movieservice/v1/movie/{id}",
       "method": "PUT",
-      "url": "{{ _.base_url }}/movieservice/v1/movie/{{ _.movie_id }}",
+      "url": "http://{{ _.host }}:8081/movieservice/v1/movie/<id>",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "metaSortKey": 700,
+      "created": 1784063187842,
+      "modified": 1784063187842,
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"name\": \"Eternals\",\n  \"year\": 2021,\n  \"cast\": \"Angelina Jolie, Salma Hayek, Gemma Chan, Lia McHugh\",\n  \"release_date\": \"2021-10-18\"\n}"
-      },
-      "headers": [
-        { "name": "Content-Type", "value": "application/json" },
-        { "name": "Accept", "value": "application/json" }
-      ]
-    },
-    {
-      "_id": "req_delete_movie_by_id",
-      "_type": "request",
-      "parentId": "fld_movies_write",
-      "name": "DELETE movie by id",
-      "method": "DELETE",
-      "url": "{{ _.base_url }}/movieservice/v1/movie/{{ _.movie_id }}",
-      "headers": [
-        { "name": "Accept", "value": "application/json" }
-      ]
-    },
-    {
-      "_id": "req_delete_movie_by_name",
-      "_type": "request",
-      "parentId": "fld_movies_write",
-      "name": "DELETE movie by name",
-      "method": "DELETE",
-      "url": "{{ _.base_url }}/movieservice/v1/movieName?movieName={{ _.movie_name }}",
-      "headers": [
-        { "name": "Accept", "value": "application/json" }
-      ]
-    },
-    {
-      "_id": "req_actuator_health",
-      "_type": "request",
-      "parentId": "fld_actuator",
-      "name": "GET /actuator/health",
-      "method": "GET",
-      "url": "http://localhost:8083/actuator/health",
-      "headers": [
-        { "name": "Accept", "value": "application/json" }
-      ]
-    },
-    {
-      "_id": "req_actuator_info",
-      "_type": "request",
-      "parentId": "fld_actuator",
-      "name": "GET /actuator/info",
-      "method": "GET",
-      "url": "http://localhost:8083/actuator/info",
-      "headers": [
-        { "name": "Accept", "value": "application/json" }
-      ]
-    },
-    {
-      "_id": "req_actuator_prometheus",
-      "_type": "request",
-      "parentId": "fld_actuator",
-      "name": "GET /actuator/prometheus",
-      "method": "GET",
-      "url": "http://localhost:8083/actuator/prometheus"
+        "text": "{\n  \n}"
+      }
     }
   ]
 }
