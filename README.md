@@ -98,46 +98,46 @@ flowchart TD
 
 Core concepts:
 
-| Concept | What it is |
-|---|---|
-| **Stub mapping** | Rule: *request pattern → response definition*. Built via Java DSL, JSON files, or REST API |
-| **Request journal** | Every received request is recorded; `verify()` asserts against it |
-| **Response templating** | Handlebars expressions in response bodies resolved per request |
-| **Scenarios** | Named state machines — same request returns different responses as state advances (stateful REST simulation) |
-| **Faults** | Protocol-level chaos: empty response, random bytes, malformed chunks |
-| **Proxying** | Pass-through to a real service, optionally per-stub, optionally recording |
+| Concept                 | What it is                                                                                                   |
+|-------------------------|--------------------------------------------------------------------------------------------------------------|
+| **Stub mapping**        | Rule: *request pattern → response definition*. Built via Java DSL, JSON files, or REST API                   |
+| **Request journal**     | Every received request is recorded; `verify()` asserts against it                                            |
+| **Response templating** | Handlebars expressions in response bodies resolved per request                                               |
+| **Scenarios**           | Named state machines — same request returns different responses as state advances (stateful REST simulation) |
+| **Faults**              | Protocol-level chaos: empty response, random bytes, malformed chunks                                         |
+| **Proxying**            | Pass-through to a real service, optionally per-stub, optionally recording                                    |
 
 Matching priority: most-specific stub wins; equal specificity → most recently added.
 Explicit `.atPriority(n)` overrides (lower number = higher priority).
 
 ### 2.2 Deployment modes
 
-| Mode | When |
-|---|---|
-| **JUnit 5 `WireMockExtension`** (this repo) | Unit/slice tests of an HTTP client — fastest feedback |
-| **Standalone JAR** (`java -jar wiremock-standalone.jar --port 8081`) | Manual exploration, non-JVM consumers, demos |
-| **Docker** (`wiremock/wiremock`) | CI environments, docker-compose stacks |
-| **Testcontainers module** | Integration tests wanting container isolation |
-| **Embedded `WireMockServer`** | Programmatic control outside JUnit |
-| **WireMock Cloud** | Hosted mock APIs, team sharing |
+| Mode                                                                 | When                                                  |
+|----------------------------------------------------------------------|-------------------------------------------------------|
+| **JUnit 5 `WireMockExtension`** (this repo)                          | Unit/slice tests of an HTTP client — fastest feedback |
+| **Standalone JAR** (`java -jar wiremock-standalone.jar --port 8081`) | Manual exploration, non-JVM consumers, demos          |
+| **Docker** (`wiremock/wiremock`)                                     | CI environments, docker-compose stacks                |
+| **Testcontainers module**                                            | Integration tests wanting container isolation         |
+| **Embedded `WireMockServer`**                                        | Programmatic control outside JUnit                    |
+| **WireMock Cloud**                                                   | Hosted mock APIs, team sharing                        |
 
 ### 2.3 Request matching reference
 
 From the [request matching docs](https://wiremock.org/docs/request-matching/) — the matchers
 you'll actually use:
 
-| Target | Matchers |
-|---|---|
-| URL | `urlEqualTo` (path+query exact), `urlPathEqualTo` (path only), `urlPathMatching` (regex), `urlPathTemplate("/movie/{id}")` |
-| Method | `get/post/put/delete/patch/any` |
-| Query params | `withQueryParam("name", equalTo/matching/containing(...))` |
-| Headers | `withHeader("Authorization", matching("Bearer .*"))`, `absent()` |
-| Cookies / Basic auth | `withCookie`, `withBasicAuth` |
-| JSON body | `equalToJson` (ignoreArrayOrder/ignoreExtraElements flags), `matchingJsonPath("$.name", equalTo(...))` |
-| XML body | `equalToXml`, `matchingXPath` |
-| Text/binary | `containing`, `matching`, `binaryEqualTo` |
-| Logic | `and(...)`, `or(...)`, `not(...)` |
-| Multipart | `withMultipartRequestBody(aMultipart()...)` |
+| Target               | Matchers                                                                                                                   |
+|----------------------|----------------------------------------------------------------------------------------------------------------------------|
+| URL                  | `urlEqualTo` (path+query exact), `urlPathEqualTo` (path only), `urlPathMatching` (regex), `urlPathTemplate("/movie/{id}")` |
+| Method               | `get/post/put/delete/patch/any`                                                                                            |
+| Query params         | `withQueryParam("name", equalTo/matching/containing(...))`                                                                 |
+| Headers              | `withHeader("Authorization", matching("Bearer .*"))`, `absent()`                                                           |
+| Cookies / Basic auth | `withCookie`, `withBasicAuth`                                                                                              |
+| JSON body            | `equalToJson` (ignoreArrayOrder/ignoreExtraElements flags), `matchingJsonPath("$.name", equalTo(...))`                     |
+| XML body             | `equalToXml`, `matchingXPath`                                                                                              |
+| Text/binary          | `containing`, `matching`, `binaryEqualTo`                                                                                  |
+| Logic                | `and(...)`, `or(...)`, `not(...)`                                                                                          |
+| Multipart            | `withMultipartRequestBody(aMultipart()...)`                                                                                |
 
 ### 2.4 Record & playback
 
@@ -364,16 +364,16 @@ if bumping the Spring Cloud train.)
 <a id="4-wiremock-vs-spring-cloud-contract-vs-pact"></a>
 ## 4. ☁️ WireMock vs Spring Cloud Contract vs Pact
 
-| | **WireMock** | **Spring Cloud Contract** | **Pact** |
-|---|---|---|---|
-| What it is | HTTP mock server | Contract-testing framework (uses WireMock for stubs) | Contract-testing framework + broker |
-| Who writes the expectation | Consumer test code | Contract file (producer repo, or consumer PRs it) | Consumer test code (pact file generated) |
-| Producer verified? | ❌ No — stubs can drift from reality | ✅ Generated tests fail producer build | ✅ Provider verification against broker pacts |
-| Stub fidelity | Whatever you write | Generated from verified contract | Generated from consumer expectations |
-| Polyglot | Any client (it's just HTTP); Java/Python/Go bindings | JVM-first (Docker images for others) | First-class multi-language |
-| Messaging | ❌ | ✅ Spring Cloud Stream | ✅ |
-| Infrastructure | None | Artifact repo for stubs jar | Pact Broker |
-| Best for | Client unit tests, error/fault simulation, exploration | Spring-to-Spring service estates | Polyglot estates, org-wide CDC |
+|                            | **WireMock**                                           | **Spring Cloud Contract**                            | **Pact**                                     |
+|----------------------------|--------------------------------------------------------|------------------------------------------------------|----------------------------------------------|
+| What it is                 | HTTP mock server                                       | Contract-testing framework (uses WireMock for stubs) | Contract-testing framework + broker          |
+| Who writes the expectation | Consumer test code                                     | Contract file (producer repo, or consumer PRs it)    | Consumer test code (pact file generated)     |
+| Producer verified?         | ❌ No — stubs can drift from reality                    | ✅ Generated tests fail producer build                | ✅ Provider verification against broker pacts |
+| Stub fidelity              | Whatever you write                                     | Generated from verified contract                     | Generated from consumer expectations         |
+| Polyglot                   | Any client (it's just HTTP); Java/Python/Go bindings   | JVM-first (Docker images for others)                 | First-class multi-language                   |
+| Messaging                  | ❌                                                      | ✅ Spring Cloud Stream                                | ✅                                            |
+| Infrastructure             | None                                                   | Artifact repo for stubs jar                          | Pact Broker                                  |
+| Best for                   | Client unit tests, error/fault simulation, exploration | Spring-to-Spring service estates                     | Polyglot estates, org-wide CDC               |
 
 They compose: **WireMock for how your client behaves under failure; Spring Cloud Contract for
 whether producer and consumer still agree.** Fault injection (section 7.7–7.8) is something
@@ -382,21 +382,21 @@ contracts can't express — you need raw WireMock for that.
 <a id="5-project-modules--structure"></a>
 ## 5. 🏗️ Project modules & structure
 
-| Module | Description |
-|---|---|
+| Module          | Description                                                       |
+|-----------------|-------------------------------------------------------------------|
 | `movies-client` | REST client for the movies service, with full WireMock test suite |
 
 ## Tech stack
 
-| Layer | Technology |
-|---|---|
-| Language | Java 25 |
-| Framework | Spring Boot 4.1.0 |
-| HTTP client | Spring WebFlux `WebClient` |
-| Mocking | WireMock 3.x (via `spring-cloud-contract-wiremock`) |
-| Testing | JUnit 5 · TestContainers |
+| Layer         | Technology                                          |
+|---------------|-----------------------------------------------------|
+| Language      | Java 25                                             |
+| Framework     | Spring Boot 4.1.0                                   |
+| HTTP client   | Spring WebFlux `WebClient`                          |
+| Mocking       | WireMock 3.x (via `spring-cloud-contract-wiremock`) |
+| Testing       | JUnit 5 · TestContainers                            |
 | Observability | Spring Actuator · Micrometer · Prometheus · Grafana |
-| Build | Maven 3.9 (parent: `super-pom`) |
+| Build         | Maven 3.9 (parent: `super-pom`)                     |
 
 ```
 learning-wiremock/
@@ -444,12 +444,12 @@ docker compose up -d
 
 The movies REST service starts on **port 8081** via Docker (Java 21 image, `beyond-java8` JAR).
 
-| Service | URL |
-|---|---|
-| Movies API | `http://localhost:8081/movieservice/v1/allMovies` |
+| Service    | URL                                                  |
+|------------|------------------------------------------------------|
+| Movies API | `http://localhost:8081/movieservice/v1/allMovies`    |
 | Swagger UI | `http://localhost:8081/movieservice/swagger-ui.html` |
-| Prometheus | `http://localhost:9090` |
-| Grafana | `http://localhost:3000` (admin / admin) |
+| Prometheus | `http://localhost:9090`                              |
+| Grafana    | `http://localhost:3000` (admin / admin)              |
 
 ### Start the movies-client Spring Boot app
 
@@ -460,10 +460,10 @@ mvn spring-boot:run
 
 App starts on **port 8083** and connects to the movies service at `http://localhost:8081`.
 
-| Endpoint | URL |
-|---|---|
-| Health | `http://localhost:8083/actuator/health` |
-| Info | `http://localhost:8083/actuator/info` |
+| Endpoint           | URL                                         |
+|--------------------|---------------------------------------------|
+| Health             | `http://localhost:8083/actuator/health`     |
+| Info               | `http://localhost:8083/actuator/info`       |
 | Prometheus metrics | `http://localhost:8083/actuator/prometheus` |
 
 ### Run the tests
@@ -539,12 +539,12 @@ wireMock.stubFor(get(urlPathEqualTo("/movieservice/v1/allMovies"))
 
 With `.templatingEnabled(true).globalTemplating(true)`, any `{{...}}` in a body file is evaluated:
 
-| Expression | What it resolves to |
-|---|---|
-| `{{request.path.[3]}}` | 4th path segment (e.g. the `{id}` in `/movie/9`) |
-| `{{request.query.movie_name.[0]}}` | First value of query param `movie_name` |
-| `{{jsonPath request.body '$.name'}}` | JSON field from the request body |
-| `{{randomValue length=10 type='ALPHANUMERIC'}}` | Random alphanumeric string |
+| Expression                                      | What it resolves to                              |
+|-------------------------------------------------|--------------------------------------------------|
+| `{{request.path.[3]}}`                          | 4th path segment (e.g. the `{id}` in `/movie/9`) |
+| `{{request.query.movie_name.[0]}}`              | First value of query param `movie_name`          |
+| `{{jsonPath request.body '$.name'}}`            | JSON field from the request body                 |
+| `{{randomValue length=10 type='ALPHANUMERIC'}}` | Random alphanumeric string                       |
 
 ```json
 // movie.json — injects path segment as movie_id
@@ -622,30 +622,30 @@ wireMock.verify(exactly(1),
 <a id="8-wiremock-3x-best-practices"></a>
 ## 8. 🤝 WireMock 3.x best practices
 
-| Practice | Why |
-|---|---|
-| `@RegisterExtension static` | Shares one WireMock server per test class; resets stubs between tests |
-| `.dynamicPort()` | Avoids port conflicts in parallel test execution |
-| `.templatingEnabled(true).globalTemplating(true)` | WireMock 3.x built-in — no manual `ResponseTemplateTransformer` needed |
+| Practice                                             | Why                                                                                                     |
+|------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
+| `@RegisterExtension static`                          | Shares one WireMock server per test class; resets stubs between tests                                   |
+| `.dynamicPort()`                                     | Avoids port conflicts in parallel test execution                                                        |
+| `.templatingEnabled(true).globalTemplating(true)`    | WireMock 3.x built-in — no manual `ResponseTemplateTransformer` needed                                  |
 | Instance `wireMock.stubFor()` not static `stubFor()` | Scoped to the extension; static method uses a global client and causes confusion in multi-server setups |
-| Body files in `__files/` | Separates test data from test code; reusable across stubs |
-| `withBodyFile()` over inline `.withBody()` | Cleaner for large JSON; supports Handlebars templating from the file |
-| `wireMock.verify()` after the act | Adds spy-level assurance that the client actually called the stub |
-| Use `matchingJsonPath` for partial request matching | More resilient than full JSON equality; tolerates field ordering |
-| `ConsoleNotifier(true)` while debugging | Prints near-miss diffs when a request doesn't match any stub |
-| Prefer contracts over long-lived hand stubs | Hand-written stubs drift; producer-verified stubs (section 3) can't |
+| Body files in `__files/`                             | Separates test data from test code; reusable across stubs                                               |
+| `withBodyFile()` over inline `.withBody()`           | Cleaner for large JSON; supports Handlebars templating from the file                                    |
+| `wireMock.verify()` after the act                    | Adds spy-level assurance that the client actually called the stub                                       |
+| Use `matchingJsonPath` for partial request matching  | More resilient than full JSON equality; tolerates field ordering                                        |
+| `ConsoleNotifier(true)` while debugging              | Prints near-miss diffs when a request doesn't match any stub                                            |
+| Prefer contracts over long-lived hand stubs          | Hand-written stubs drift; producer-verified stubs (section 3) can't                                     |
 
 ---
 
 <a id="9-design-patterns-used"></a>
 ## 9. 🏗️ Design patterns used
 
-| Pattern | Where |
-|---|---|
+| Pattern                   | Where                                                                              |
+|---------------------------|------------------------------------------------------------------------------------|
 | **Template Method** (GoF) | `MoviesRestClient.executeRequest()` — invariant error handling, variant HTTP calls |
-| **Builder** (GoF) | `Movie` via Lombok `@Builder` |
-| **Factory Method** (GoF) | `WebClientConfig.moviesWebClient()` — constructs the `WebClient` bean |
-| **Singleton** (GoF) | All `@Service` / `@Configuration` Spring beans |
+| **Builder** (GoF)         | `Movie` via Lombok `@Builder`                                                      |
+| **Factory Method** (GoF)  | `WebClientConfig.moviesWebClient()` — constructs the `WebClient` bean              |
+| **Singleton** (GoF)       | All `@Service` / `@Configuration` Spring beans                                     |
 
 ---
 
