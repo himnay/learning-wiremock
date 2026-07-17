@@ -8,7 +8,7 @@ import java.util.TimeZone;
 
 @SpringBootApplication
 @ConfigurationPropertiesScan
-public class LearnWiremockApplication {
+class LearnWiremockApplication {
 
     public static void main(String[] args) {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));

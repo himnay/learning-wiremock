@@ -17,7 +17,7 @@ import org.springframework.web.context.WebApplicationContext;
  * controller behaviour, not hand-written expectations.
  */
 @SpringBootTest
-public abstract class ContractVerifierBase {
+abstract class ContractVerifierBase {
 
     @Autowired
     private WebApplicationContext context;
