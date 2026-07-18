@@ -10,6 +10,7 @@ import java.util.TimeZone;
 @ConfigurationPropertiesScan
 class LearnWiremockApplication {
 
+    /** Application entry point. */
     public static void main(String[] args) {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
         SpringApplication.run(LearnWiremockApplication.class, args);

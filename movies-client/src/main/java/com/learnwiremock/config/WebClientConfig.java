@@ -18,6 +18,7 @@ import java.time.Duration;
 @Configuration
 public class WebClientConfig {
 
+    /** Defines the movies web client bean. */
     @Bean
     public WebClient moviesWebClient(MoviesClientProperties props) {
         HttpClient httpClient = HttpClient.create()

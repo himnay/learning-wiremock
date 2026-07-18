@@ -50,12 +50,14 @@ public class MovieService {
         return movies;
     }
 
+    /** Adds movie. */
     public Movie addMovie(Movie movie) {
         Movie saved = repository.save(movie);
         log.info("Created movie: id={}, name='{}'", saved.getMovie_id(), saved.getName());
         return saved;
     }
 
+    /** Updates movie. */
     public Movie updateMovie(Long id, Movie movie) {
         Movie existing = getById(id);
         existing.setName(movie.getName() != null ? movie.getName() : existing.getName());
@@ -67,6 +69,7 @@ public class MovieService {
         return updated;
     }
 
+    /** Deletes by id. */
     public String deleteById(Long id) {
         if (!repository.deleteById(id)) {
             log.warn("Delete failed — movie not found: id={}", id);
@@ -76,6 +79,7 @@ public class MovieService {
         return "Movie Deleted Successfully";
     }
 
+    /** Deletes by name. */
     public String deleteByName(String name) {
         if (!repository.deleteByName(name)) {
             log.warn("Delete failed — no movie found for name='{}'", name);

@@ -44,6 +44,7 @@ public class MoviesRestClient {
 
     // ── CRUD operations ────────────────────────────────────────────────────────
 
+    /** Returns the retrieve all movies. */
     public List<Movie> retrieveAllMovies() {
         return executeRequest(() -> webClient.get()
                 .uri(GET_ALL_MOVIES_V1)
@@ -53,6 +54,7 @@ public class MoviesRestClient {
                 .block());
     }
 
+    /** Returns the retrieve movie by id. */
     public Movie retrieveMovieById(Integer movieId) {
         return executeRequest(() -> webClient.get()
                 .uri(MOVIE_BY_ID_PATH_PARAM_V1, movieId)
@@ -61,6 +63,7 @@ public class MoviesRestClient {
                 .block());
     }
 
+    /** Returns the retrieve movie by name. */
     public List<Movie> retrieveMovieByName(String movieName) {
         String uri = UriComponentsBuilder.fromUriString(MOVIE_BY_NAME_QUERY_PARAM_V1)
                 .queryParam("movie_name", movieName)
@@ -75,6 +78,7 @@ public class MoviesRestClient {
                 .block());
     }
 
+    /** Returns the retrieve movie by year. */
     public List<Movie> retrieveMovieByYear(Integer year) {
         String uri = UriComponentsBuilder.fromUriString(MOVIE_BY_YEAR_QUERY_PARAM_V1)
                 .queryParam("year", year)
@@ -89,6 +93,7 @@ public class MoviesRestClient {
                 .block());
     }
 
+    /** Adds new movie. */
     public Movie addNewMovie(Movie newMovie) {
         return executeRequest(() -> webClient.post()
                 .uri(ADD_MOVIE_V1)
@@ -98,6 +103,7 @@ public class MoviesRestClient {
                 .block());
     }
 
+    /** Updates movie. */
     public Movie updateMovie(Integer movieId, Movie movie) {
         return executeRequest(() -> webClient.put()
                 .uri(MOVIE_BY_ID_PATH_PARAM_V1, movieId)
@@ -107,6 +113,7 @@ public class MoviesRestClient {
                 .block());
     }
 
+    /** Deletes movie by id. */
     public String deleteMovieById(Integer movieId) {
         return executeRequest(() -> webClient.delete()
                 .uri(MOVIE_BY_ID_PATH_PARAM_V1, movieId)
@@ -115,6 +122,7 @@ public class MoviesRestClient {
                 .block());
     }
 
+    /** Deletes movie by name. */
     public String deleteMovieByName(String movieName) {
         String uri = UriComponentsBuilder.fromUriString(MOVIE_BY_NAME_QUERY_PARAM_V1)
                 .queryParam("movieName", movieName)

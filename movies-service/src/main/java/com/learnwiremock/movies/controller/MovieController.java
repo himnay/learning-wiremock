@@ -36,22 +36,26 @@ public class MovieController {
         return movieService.getByYear(year);
     }
 
+    /** Adds movie. */
     @PostMapping("/movie")
     @ResponseStatus(HttpStatus.CREATED)
     public Movie addMovie(@RequestBody @Valid Movie movie) {
         return movieService.addMovie(movie);
     }
 
+    /** Updates movie. */
     @PutMapping("/movie/{id}")
     public Movie updateMovie(@PathVariable Long id, @RequestBody Movie movie) {
         return movieService.updateMovie(id, movie);
     }
 
+    /** Deletes movie by id. */
     @DeleteMapping("/movie/{id}")
     public String deleteMovieById(@PathVariable Long id) {
         return movieService.deleteById(id);
     }
 
+    /** Deletes movie by name. */
     @DeleteMapping("/movieName")
     public String deleteMovieByName(@RequestParam String movieName) {
         return movieService.deleteByName(movieName);

@@ -16,12 +16,14 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    /** Handles not found. */
     @ExceptionHandler(MovieNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleNotFound(
             MovieNotFoundException ex, HttpServletRequest request) {
         return error(HttpStatus.NOT_FOUND, ex.getMessage(), request.getRequestURI());
     }
 
+    /** Handles validation. */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidation(
             MethodArgumentNotValidException ex, HttpServletRequest request) {
@@ -31,6 +33,7 @@ public class GlobalExceptionHandler {
         return error(HttpStatus.BAD_REQUEST, message, request.getRequestURI());
     }
 
+    /** Handles generic. */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneric(
             Exception ex, HttpServletRequest request) {

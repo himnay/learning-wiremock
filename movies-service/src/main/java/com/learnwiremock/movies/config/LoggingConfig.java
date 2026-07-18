@@ -7,6 +7,7 @@ import org.springframework.web.filter.CommonsRequestLoggingFilter;
 @Configuration
 public class LoggingConfig {
 
+    /** Defines the request logging filter bean. */
     @Bean
     public CommonsRequestLoggingFilter requestLoggingFilter() {
         CommonsRequestLoggingFilter filter = new CommonsRequestLoggingFilter();

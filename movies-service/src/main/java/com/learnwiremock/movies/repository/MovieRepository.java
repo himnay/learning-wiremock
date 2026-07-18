@@ -20,14 +20,17 @@ public class MovieRepository {
         seed().forEach(m -> store.put(m.getMovie_id(), m));
     }
 
+    /** Finds all. */
     public List<Movie> findAll() {
         return List.copyOf(store.values());
     }
 
+    /** Finds by id. */
     public Optional<Movie> findById(Long id) {
         return Optional.ofNullable(store.get(id));
     }
 
+    /** Finds by name containing. */
     public List<Movie> findByNameContaining(String name) {
         String lower = name.toLowerCase();
         return store.values().stream()
@@ -35,12 +38,14 @@ public class MovieRepository {
                 .toList();
     }
 
+    /** Finds by year. */
     public List<Movie> findByYear(Integer year) {
         return store.values().stream()
                 .filter(m -> year.equals(m.getYear()))
                 .toList();
     }
 
+    /** Saves. */
     public Movie save(Movie movie) {
         if (movie.getMovie_id() == null) {
             movie.setMovie_id(idSequence.incrementAndGet());
@@ -49,10 +54,12 @@ public class MovieRepository {
         return movie;
     }
 
+    /** Deletes by id. */
     public boolean deleteById(Long id) {
         return store.remove(id) != null;
     }
 
+    /** Deletes by name. */
     public boolean deleteByName(String name) {
         String lower = name.toLowerCase();
         List<Long> keys = store.values().stream()
