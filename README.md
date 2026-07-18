@@ -28,12 +28,13 @@ consumer-driven contract testing framework that *generates* WireMock stubs from 
    - [Spring Cloud Contract in this repo](#37-spring-cloud-contract-in-this-repo)
 4. ☁️ [WireMock vs Spring Cloud Contract vs Pact](#4-wiremock-vs-spring-cloud-contract-vs-pact)
 5. 🏗️ [Project modules & structure](#5-project-modules--structure)
-6. 🚀 [Running everything](#6-running-everything)
-7. 🧪 [WireMock 3.x — features covered in the tests](#7-wiremock-3x--features-covered-in-the-tests)
-8. 🤝 [WireMock 3.x best practices](#8-wiremock-3x-best-practices)
-9. 🏗️ [Design patterns used](#9-design-patterns-used)
-10. 📈 [Observability (Prometheus + Grafana)](#10-observability-prometheus--grafana)
-11. 📚 [Further reading](#11-further-reading)
+6. 🧰 [Tech stack](#6-tech-stack)
+7. 🚀 [Running everything](#7-running-everything)
+8. 🧪 [WireMock 3.x — features covered in the tests](#8-wiremock-3x--features-covered-in-the-tests)
+9. 🤝 [WireMock 3.x best practices](#9-wiremock-3x-best-practices)
+10. 🏗️ [Design patterns used](#10-design-patterns-used)
+11. 📈 [Observability (Prometheus + Grafana)](#11-observability-prometheus--grafana)
+12. 📚 [Further reading](#12-further-reading)
 
 ---
 
@@ -386,7 +387,8 @@ contracts can't express — you need raw WireMock for that.
 |-----------------|-------------------------------------------------------------------|
 | `movies-client` | REST client for the movies service, with full WireMock test suite |
 
-## Tech stack
+<a id="6-tech-stack"></a>
+## 6. 🧰 Tech stack
 
 | Layer         | Technology                                          |
 |---------------|-----------------------------------------------------|
@@ -433,8 +435,8 @@ learning-wiremock/
             └── resources/__files/                           # WireMock response body files
 ```
 
-<a id="6-running-everything"></a>
-## 6. 🚀 Running everything
+<a id="7-running-everything"></a>
+## 7. 🚀 Running everything
 
 ### Start movies-service + observability stack
 
@@ -480,8 +482,8 @@ WireMock starts on a **random port** per test class — no port conflicts, paral
 
 ---
 
-<a id="7-wiremock-3x--features-covered-in-the-tests"></a>
-## 7. 🧪 WireMock 3.x — features covered in the tests
+<a id="8-wiremock-3x--features-covered-in-the-tests"></a>
+## 8. 🧪 WireMock 3.x — features covered in the tests
 
 ### 7.1 JUnit 5 native extension (best practice)
 
@@ -619,8 +621,8 @@ wireMock.verify(exactly(1),
 
 ---
 
-<a id="8-wiremock-3x-best-practices"></a>
-## 8. 🤝 WireMock 3.x best practices
+<a id="9-wiremock-3x-best-practices"></a>
+## 9. 🤝 WireMock 3.x best practices
 
 | Practice                                             | Why                                                                                                     |
 |------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
@@ -637,8 +639,8 @@ wireMock.verify(exactly(1),
 
 ---
 
-<a id="9-design-patterns-used"></a>
-## 9. 🏗️ Design patterns used
+<a id="10-design-patterns-used"></a>
+## 10. 🏗️ Design patterns used
 
 | Pattern                   | Where                                                                              |
 |---------------------------|------------------------------------------------------------------------------------|
@@ -649,8 +651,8 @@ wireMock.verify(exactly(1),
 
 ---
 
-<a id="10-observability-prometheus--grafana"></a>
-## 10. 📈 Observability (Prometheus + Grafana)
+<a id="11-observability-prometheus--grafana"></a>
+## 11. 📈 Observability (Prometheus + Grafana)
 
 In Grafana:
 1. Add datasource → Prometheus → `http://prometheus:9090`
@@ -660,8 +662,8 @@ Prometheus scrapes `host.docker.internal:8083/actuator/prometheus` every 10 s.
 
 ---
 
-<a id="11-further-reading"></a>
-## 11. 📚 Further reading
+<a id="12-further-reading"></a>
+## 12. 📚 Further reading
 
 <ul>
 
