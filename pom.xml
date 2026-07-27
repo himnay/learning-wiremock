@@ -28,11 +28,6 @@
 
     <build>
         <plugins>
-            <!--
-                JaCoCo 0.8.13 (from super-pom) does not support Java 25 class-file
-                format (major version 69) — omitting it here until JaCoCo adds support.
-                Re-enable by adding the plugin back once a compatible version is available.
-            -->
         </plugins>
     </build>
 

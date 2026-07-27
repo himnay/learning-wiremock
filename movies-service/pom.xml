@@ -47,8 +47,6 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <!-- Runtime support for the verification tests generated from src/test/resources/contracts
-             (RestAssured MockMvc, JsonAssert, …) — version managed by spring-cloud-dependencies BOM -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-contract-verifier</artifactId>
@@ -59,12 +57,6 @@
 
     <build>
         <plugins>
-            <!-- Producer side of Spring Cloud Contract:
-                 1. generates a JUnit 5 test per contract, extending ContractVerifierBase
-                 2. runs them against the REAL MovieController via RestAssuredMockMvc
-                 3. packages the equivalent WireMock mappings as movies-service-<version>-stubs.jar
-                 Plugin version must match the spring-cloud-contract.version managed by
-                 spring-cloud-dependencies 2025.1.2 (learning-bom) = 5.0.3 -->
             <plugin>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-contract-maven-plugin</artifactId>
