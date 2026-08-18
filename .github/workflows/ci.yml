@@ -1,0 +1,37 @@
+name: CI
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: himnay/maven-bom
+          path: maven-bom
+      - uses: actions/checkout@v4
+        with:
+          repository: himnay/super-pom
+          path: super-pom
+      - uses: actions/checkout@v4
+        with:
+          path: learning-wiremock
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+          cache: maven
+      # super-pom imports this repo's BOM by version, so it must be installed
+      # locally first — it isn't published to a public Maven repo.
+      - name: Install learning-bom
+        run: mvn -B -N install
+        working-directory: maven-bom
+      - name: Install super-pom
+        run: mvn -B -N install
+        working-directory: super-pom
+      - name: Build learning-wiremock (movies-client, movies-service)
+        run: mvn -B verify
+        working-directory: learning-wiremock
