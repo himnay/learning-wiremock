@@ -1,4 +1,4 @@
-# <span style="color:hsl(316,68%,44%)">Learning WireMock & Spring Cloud Contract</span>
+# <span style="color:hsl(316,80%,58%)">Learning WireMock & Spring Cloud Contract</span>
 
 ![WireMock](image/wiremock-oss-logo.png)
 
@@ -9,7 +9,7 @@ consumer-driven contract testing framework that *generates* WireMock stubs from 
 
 ---
 
-## <span style="color:hsl(325,68%,44%)">Table of contents</span>
+## <span style="color:hsl(94,80%,58%)">Table of contents</span>
 
 1. 🌐 [Why mock HTTP services at all?](#1-why-mock-http-services-at-all)
 2. 🤝 [WireMock — the deep dive](#2-wiremock--the-deep-dive)
@@ -39,7 +39,7 @@ consumer-driven contract testing framework that *generates* WireMock stubs from 
 ---
 
 <a id="1-why-mock-http-services-at-all"></a>
-## <span style="color:hsl(334,68%,44%)">1. 🌐 Why mock HTTP services at all?</span>
+## <span style="color:hsl(231,80%,58%)">1. 🌐 Why mock HTTP services at all?</span>
 
 Testing a REST *client* against the real downstream service is slow, flaky and often
 impossible: the service may not exist yet, may cost money per call, may have no way to
@@ -76,13 +76,13 @@ The catch: a stub is only as correct as your assumption about the real API. That
 exactly what **contract testing** (section 3) closes.
 
 <a id="2-wiremock--the-deep-dive"></a>
-## <span style="color:hsl(344,68%,44%)">2. 🤝 WireMock — the deep dive</span>
+## <span style="color:hsl(9,80%,58%)">2. 🤝 WireMock — the deep dive</span>
 
 WireMock ([source](https://github.com/wiremock/wiremock), [docs](https://wiremock.org/docs/overview/))
 is an HTTP mock server: a real Jetty-based server that answers requests according to
 **stub mappings** and journals every request it receives.
 
-### <span style="color:hsl(353,68%,44%)">2.1 Architecture</span>
+### <span style="color:hsl(146,80%,58%)">2.1 Architecture</span>
 
 ```mermaid
 flowchart TD
@@ -111,7 +111,7 @@ Core concepts:
 Matching priority: most-specific stub wins; equal specificity → most recently added.
 Explicit `.atPriority(n)` overrides (lower number = higher priority).
 
-### <span style="color:hsl(2,68%,44%)">2.2 Deployment modes</span>
+### <span style="color:hsl(284,80%,58%)">2.2 Deployment modes</span>
 
 | Mode                                                                 | When                                                  |
 |----------------------------------------------------------------------|-------------------------------------------------------|
@@ -122,7 +122,7 @@ Explicit `.atPriority(n)` overrides (lower number = higher priority).
 | **Embedded `WireMockServer`**                                        | Programmatic control outside JUnit                    |
 | **WireMock Cloud**                                                   | Hosted mock APIs, team sharing                        |
 
-### <span style="color:hsl(11,68%,44%)">2.3 Request matching reference</span>
+### <span style="color:hsl(61,80%,50%)">2.3 Request matching reference</span>
 
 From the [request matching docs](https://wiremock.org/docs/request-matching/) — the matchers
 you'll actually use:
@@ -140,7 +140,7 @@ you'll actually use:
 | Logic                | `and(...)`, `or(...)`, `not(...)`                                                                                          |
 | Multipart            | `withMultipartRequestBody(aMultipart()...)`                                                                                |
 
-### <span style="color:hsl(21,68%,44%)">2.4 Record & playback</span>
+### <span style="color:hsl(199,80%,58%)">2.4 Record & playback</span>
 
 WireMock can *write your stubs for you* ([recording docs](https://wiremock.org/docs/record-playback/)):
 
@@ -156,7 +156,7 @@ java -jar wiremock-standalone.jar --port 8089 --proxy-all="http://localhost:8081
 Great for bootstrapping a stub suite against a legacy API; then hand-edit the captured JSON
 into precise, minimal stubs.
 
-### <span style="color:hsl(30,68%,44%)">2.5 Near misses</span>
+### <span style="color:hsl(336,80%,58%)">2.5 Near misses</span>
 
 When a request matches no stub, WireMock doesn't just 404 — it computes a **distance** to
 every registered stub and reports the closest ones ([verifying docs](https://wiremock.org/docs/verifying/)).
@@ -164,9 +164,9 @@ A one-character path typo shows up as a near-miss diff instead of a mystery fail
 `ConsoleNotifier(true)` prints these during test runs — turn it on when debugging, off in CI.
 
 <a id="3-spring-cloud-contract--the-deep-dive"></a>
-## <span style="color:hsl(39,68%,44%)">3. ☁️ Spring Cloud Contract — the deep dive</span>
+## <span style="color:hsl(114,80%,58%)">3. ☁️ Spring Cloud Contract — the deep dive</span>
 
-### <span style="color:hsl(48,68%,32%)">3.1 The dual-consumer problem contracts solve</span>
+### <span style="color:hsl(251,80%,58%)">3.1 The dual-consumer problem contracts solve</span>
 
 WireMock stubs live in the **consumer's** repo and encode the consumer's *belief* about the
 API. Nothing stops the producer from renaming a field tomorrow: the consumer's build stays
@@ -183,7 +183,7 @@ environments catch this, but slowly and expensively.
 
 </ul>
 
-### <span style="color:hsl(58,68%,32%)">3.2 How the flow works</span>
+### <span style="color:hsl(29,80%,58%)">3.2 How the flow works</span>
 
 ([Spring Cloud Contract docs](https://spring.io/projects/spring-cloud-contract/),
 [Baeldung intro](https://www.baeldung.com/spring-cloud-contract))
@@ -215,7 +215,7 @@ Two collaboration models:
 
 </ul>
 
-### <span style="color:hsl(67,68%,32%)">3.3 Writing a contract</span>
+### <span style="color:hsl(166,80%,58%)">3.3 Writing a contract</span>
 
 Groovy DSL (YAML, Java and Kotlin also supported):
 
@@ -246,7 +246,7 @@ Key DSL powers: regex matchers per field, different value shown to consumer vs p
 (`$(consumer(...), producer(...))`), request/response templating, priority, and reusable
 common parts.
 
-### <span style="color:hsl(76,68%,32%)">3.4 Producer side: generated verification tests</span>
+### <span style="color:hsl(304,80%,58%)">3.4 Producer side: generated verification tests</span>
 
 `spring-cloud-contract-maven-plugin` turns every contract into a JUnit test extending your
 base class:
@@ -280,7 +280,7 @@ mocked service layer). `mvn install` then also produces
 `movies-service-<version>-stubs.jar` containing the equivalent WireMock JSON mappings —
 the stubs are a *by-product of a verified build*, which is the whole point.
 
-### <span style="color:hsl(85,68%,32%)">3.5 Consumer side: Stub Runner</span>
+### <span style="color:hsl(81,80%,58%)">3.5 Consumer side: Stub Runner</span>
 
 ```java
 @SpringBootTest
@@ -296,7 +296,7 @@ class MoviesRestClientContractTest {
 There's also a standalone **Stub Runner Boot** JAR and a
 [Docker image for non-JVM consumers](https://paradigma-digital.medium.com/using-the-stubs-generated-with-spring-cloud-contract-in-docker-ce4a262841be).
 
-### <span style="color:hsl(94,68%,32%)">3.6 Messaging contracts</span>
+### <span style="color:hsl(219,80%,58%)">3.6 Messaging contracts</span>
 
 Contracts aren't HTTP-only — the same DSL describes messages (Kafka, RabbitMQ, JMS via
 Spring Cloud Stream binders):
@@ -315,7 +315,7 @@ Contract.make {
 Producer build verifies the message really gets sent; consumer uses `StubTrigger` to fire
 `movie_created` and assert its listener handles the payload.
 
-### <span style="color:hsl(104,68%,32%)">3.7 Spring Cloud Contract in this repo</span>
+### <span style="color:hsl(356,80%,58%)">3.7 Spring Cloud Contract in this repo</span>
 
 `movies-client` pulls WireMock through the **`spring-cloud-contract-wiremock`** artifact —
 the Spring-managed WireMock integration. Even without contracts, it gives:
@@ -363,7 +363,7 @@ against the exact same request/response shapes the consumer's stub-runner test r
 if bumping the Spring Cloud train.)
 
 <a id="4-wiremock-vs-spring-cloud-contract-vs-pact"></a>
-## <span style="color:hsl(113,68%,32%)">4. ☁️ WireMock vs Spring Cloud Contract vs Pact</span>
+## <span style="color:hsl(134,80%,58%)">4. ☁️ WireMock vs Spring Cloud Contract vs Pact</span>
 
 |                            | **WireMock**                                           | **Spring Cloud Contract**                            | **Pact**                                     |
 |----------------------------|--------------------------------------------------------|------------------------------------------------------|----------------------------------------------|
@@ -381,14 +381,14 @@ whether producer and consumer still agree.** Fault injection (section 7.7–7.8)
 contracts can't express — you need raw WireMock for that.
 
 <a id="5-project-modules--structure"></a>
-## <span style="color:hsl(122,68%,32%)">5. 🏗️ Project modules & structure</span>
+## <span style="color:hsl(271,80%,58%)">5. 🏗️ Project modules & structure</span>
 
 | Module          | Description                                                       |
 |-----------------|-------------------------------------------------------------------|
 | `movies-client` | REST client for the movies service, with full WireMock test suite |
 
 <a id="6-tech-stack"></a>
-## <span style="color:hsl(131,68%,32%)">6. 🧰 Tech stack</span>
+## <span style="color:hsl(49,80%,50%)">6. 🧰 Tech stack</span>
 
 | Layer         | Technology                                          |
 |---------------|-----------------------------------------------------|
@@ -436,9 +436,9 @@ learning-wiremock/
 ```
 
 <a id="7-running-everything"></a>
-## <span style="color:hsl(141,68%,32%)">7. 🚀 Running everything</span>
+## <span style="color:hsl(186,80%,58%)">7. 🚀 Running everything</span>
 
-### <span style="color:hsl(150,68%,36%)">Start movies-service + observability stack</span>
+### <span style="color:hsl(324,80%,58%)">Start movies-service + observability stack</span>
 
 ```bash
 docker compose up -d
@@ -453,7 +453,7 @@ The movies REST service starts on **port 8081** via Docker (Java 21 image, `beyo
 | Prometheus | `http://localhost:9090`                              |
 | Grafana    | `http://localhost:3000` (admin / admin)              |
 
-### <span style="color:hsl(159,68%,36%)">Start the movies-client Spring Boot app</span>
+### <span style="color:hsl(101,80%,58%)">Start the movies-client Spring Boot app</span>
 
 ```bash
 cd movies-client
@@ -468,7 +468,7 @@ App starts on **port 8083** and connects to the movies service at `http://localh
 | Info               | `http://localhost:8083/actuator/info`       |
 | Prometheus metrics | `http://localhost:8083/actuator/prometheus` |
 
-### <span style="color:hsl(168,68%,36%)">Run the tests</span>
+### <span style="color:hsl(239,80%,58%)">Run the tests</span>
 
 ```bash
 # all modules
@@ -483,9 +483,9 @@ WireMock starts on a **random port** per test class — no port conflicts, paral
 ---
 
 <a id="8-wiremock-3x--features-covered-in-the-tests"></a>
-## <span style="color:hsl(178,68%,36%)">8. 🧪 WireMock 3.x — features covered in the tests</span>
+## <span style="color:hsl(16,80%,58%)">8. 🧪 WireMock 3.x — features covered in the tests</span>
 
-### <span style="color:hsl(187,68%,36%)">7.1 JUnit 5 native extension (best practice)</span>
+### <span style="color:hsl(154,80%,58%)">7.1 JUnit 5 native extension (best practice)</span>
 
 Use `WireMockExtension` with `@RegisterExtension` — replaces the legacy JUnit 4 `@Rule WireMockRule`.
 
@@ -503,7 +503,7 @@ static WireMockExtension wireMock = WireMockExtension.newInstance()
 > **WireMock 3.x note:** Do NOT manually register `ResponseTemplateTransformer` via `.extensions()`.
 > Use `.templatingEnabled(true).globalTemplating(true)` — it is built in.
 
-### <span style="color:hsl(196,68%,36%)">7.2 URL & method matching</span>
+### <span style="color:hsl(291,80%,58%)">7.2 URL & method matching</span>
 
 ```java
 // exact path
@@ -517,7 +517,7 @@ wireMock.stubFor(get(urlPathEqualTo("/movieservice/v1/movieByName"))
         .withQueryParam("movie_name", equalTo("Avengers"))...);
 ```
 
-### <span style="color:hsl(205,68%,44%)">7.3 Request body matching</span>
+### <span style="color:hsl(69,80%,50%)">7.3 Request body matching</span>
 
 ```java
 wireMock.stubFor(post(urlPathEqualTo("/movieservice/v1/movie"))
@@ -525,7 +525,7 @@ wireMock.stubFor(post(urlPathEqualTo("/movieservice/v1/movie"))
         .withRequestBody(matchingJsonPath("$.cast", containing("Salma")))...);
 ```
 
-### <span style="color:hsl(214,68%,44%)">7.4 Response body from file (`__files/`)</span>
+### <span style="color:hsl(206,80%,58%)">7.4 Response body from file (`__files/`)</span>
 
 Files in `src/test/resources/__files/` are served as-is.
 
@@ -537,7 +537,7 @@ wireMock.stubFor(get(urlPathEqualTo("/movieservice/v1/allMovies"))
                 .withBodyFile("all-movies.json")));
 ```
 
-### <span style="color:hsl(224,68%,44%)">7.5 Response templates (Handlebars)</span>
+### <span style="color:hsl(344,80%,58%)">7.5 Response templates (Handlebars)</span>
 
 With `.templatingEnabled(true).globalTemplating(true)`, any `{{...}}` in a body file is evaluated:
 
@@ -557,7 +557,7 @@ With `.templatingEnabled(true).globalTemplating(true)`, any `{{...}}` in a body 
   "name": "{{jsonPath request.body '$.name'}}" }
 ```
 
-### <span style="color:hsl(233,68%,44%)">7.6 HTTP error simulation</span>
+### <span style="color:hsl(121,80%,58%)">7.6 HTTP error simulation</span>
 
 ```java
 wireMock.stubFor(get(anyUrl()).willReturn(serverError()));          // 500
@@ -566,7 +566,7 @@ wireMock.stubFor(get(anyUrl()).willReturn(aResponse()
         .withStatus(404).withBodyFile("404-movieid.json")));
 ```
 
-### <span style="color:hsl(242,68%,44%)">7.7 Network fault simulation</span>
+### <span style="color:hsl(259,80%,58%)">7.7 Network fault simulation</span>
 
 ```java
 wireMock.stubFor(get(anyUrl())
@@ -575,7 +575,7 @@ wireMock.stubFor(get(anyUrl())
         .willReturn(aResponse().withFault(Fault.RANDOM_DATA_THEN_CLOSE)));  // garbled bytes + close
 ```
 
-### <span style="color:hsl(251,68%,44%)">7.8 Latency & timeout simulation</span>
+### <span style="color:hsl(36,80%,58%)">7.8 Latency & timeout simulation</span>
 
 ```java
 // fixed delay
@@ -593,7 +593,7 @@ HttpClient httpClient = HttpClient.create()
         .responseTimeout(Duration.ofSeconds(5));
 ```
 
-### <span style="color:hsl(261,68%,44%)">7.9 Selective proxying</span>
+### <span style="color:hsl(174,80%,58%)">7.9 Selective proxying</span>
 
 Forward everything to the real service, then override specific paths with stubs:
 
@@ -607,7 +607,7 @@ wireMock.stubFor(get(urlPathEqualTo("/movieservice/v1/movie/1"))
         .willReturn(aResponse().withBodyFile("movie.json")));
 ```
 
-### <span style="color:hsl(270,68%,44%)">7.10 Request verification (WireMock spy)</span>
+### <span style="color:hsl(311,80%,58%)">7.10 Request verification (WireMock spy)</span>
 
 Assert that your client actually made the expected HTTP calls:
 
@@ -622,7 +622,7 @@ wireMock.verify(exactly(1),
 ---
 
 <a id="9-wiremock-3x-best-practices"></a>
-## <span style="color:hsl(279,68%,44%)">9. 🤝 WireMock 3.x best practices</span>
+## <span style="color:hsl(89,80%,58%)">9. 🤝 WireMock 3.x best practices</span>
 
 | Practice                                             | Why                                                                                                     |
 |------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
@@ -640,7 +640,7 @@ wireMock.verify(exactly(1),
 ---
 
 <a id="10-design-patterns-used"></a>
-## <span style="color:hsl(288,68%,44%)">10. 🏗️ Design patterns used</span>
+## <span style="color:hsl(226,80%,58%)">10. 🏗️ Design patterns used</span>
 
 | Pattern                   | Where                                                                              |
 |---------------------------|------------------------------------------------------------------------------------|
@@ -652,7 +652,7 @@ wireMock.verify(exactly(1),
 ---
 
 <a id="11-observability-prometheus--grafana"></a>
-## <span style="color:hsl(298,68%,44%)">11. 📈 Observability (Prometheus + Grafana)</span>
+## <span style="color:hsl(4,80%,58%)">11. 📈 Observability (Prometheus + Grafana)</span>
 
 In Grafana:
 1. Add datasource → Prometheus → `http://prometheus:9090`
@@ -663,7 +663,7 @@ Prometheus scrapes `host.docker.internal:8083/actuator/prometheus` every 10 s.
 ---
 
 <a id="12-further-reading"></a>
-## <span style="color:hsl(307,68%,44%)">12. 📚 Further reading</span>
+## <span style="color:hsl(141,80%,58%)">12. 📚 Further reading</span>
 
 <ul>
 
