@@ -393,12 +393,15 @@ contracts can't express — you need raw WireMock for that.
 | Layer         | Technology                                          |
 |---------------|-----------------------------------------------------|
 | Language      | Java 25                                             |
-| Framework     | Spring Boot 4.1.0                                   |
+| Framework     | Spring Boot 4.1.1 (super-pom 1.1.2, as of 2026)     |
 | HTTP client   | Spring WebFlux `WebClient`                          |
-| Mocking       | WireMock 3.x (via `spring-cloud-contract-wiremock`) |
-| Testing       | JUnit 5 · TestContainers                            |
+| Mocking       | WireMock 3.13 (via `spring-cloud-contract-wiremock` 5.0.3) |
+| Testing       | JUnit 6 · Testcontainers 2 · Spring Cloud Contract 5.0.3 |
 | Observability | Spring Actuator · Micrometer · Prometheus · Grafana |
 | Build         | Maven 3.9 (parent: `super-pom`)                     |
+
+> Spring Cloud 2025.1.3 removed Spring Cloud Contract from its release-train BOM (2025.1.2 still
+> imported it), so the root `pom.xml` imports `spring-cloud-contract-dependencies` itself.
 
 ```
 learning-wiremock/
@@ -471,10 +474,11 @@ App starts on **port 8083** and connects to the movies service at `http://localh
 ### <span style="color:hsl(239,80%,58%)">Run the tests</span>
 
 ```bash
-# all modules
-mvn test
+# all modules — install, not just test: the client's contract test resolves the
+# movies-service stubs jar from ~/.m2 (StubsMode.LOCAL), so the producer must be installed
+mvn install
 
-# movies-client only
+# movies-client only (after movies-service has been installed once)
 mvn test -pl movies-client
 ```
 
