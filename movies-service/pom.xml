@@ -61,7 +61,18 @@
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-contract-maven-plugin</artifactId>
                 <version>${spring-cloud-contract.version}</version>
-                <extensions>true</extensions>
+                <!-- Goals bound explicitly instead of <extensions>true</extensions>: loading the plugin as a
+                     build extension put its httpclient into Maven's core realm, which broke the build on
+                     GitHub's runner ("BasicAuthCache cannot be cast to AuthCache"). -->
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generateTests</goal>
+                            <goal>convert</goal>
+                            <goal>generateStubs</goal>
+                        </goals>
+                    </execution>
+                </executions>
                 <configuration>
                     <testFramework>JUNIT5</testFramework>
                     <baseClassForTests>com.learnwiremock.movies.ContractVerifierBase</baseClassForTests>
