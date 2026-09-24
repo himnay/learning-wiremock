@@ -400,6 +400,10 @@ contracts can't express — you need raw WireMock for that.
 | Observability | Spring Actuator · Micrometer · Prometheus · Grafana |
 | Build         | Maven 3.9 (parent: `super-pom`)                     |
 
+> `.mvn/maven.config` sets `-Dmaven.resolver.transport=wagon`: on Maven 3.9.16 (GitHub's runner) the
+> contract plugin's Apache HttpClient 4 classes clash with Maven's own HTTP transport as soon as a
+> later plugin downloads something (`BasicAuthCache cannot be cast to AuthCache`).
+>
 > Spring Cloud 2025.1.3 removed Spring Cloud Contract from its release-train BOM (2025.1.2 still
 > imported it), so the root `pom.xml` imports `spring-cloud-contract-dependencies` itself.
 

@@ -37,5 +37,5 @@ jobs:
       - name: Maven version
         run: mvn -v
       - name: Build and test
-        run: mvn -B -e install
+        run: mvn -B install
         working-directory: learning-wiremock
