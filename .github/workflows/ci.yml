@@ -34,6 +34,8 @@ jobs:
         working-directory: super-pom
       # install, not verify: movies-client's contract test resolves the movies-service stubs jar
       # from the local repository (StubsMode.LOCAL), so the producer must be installed first
+      - name: Maven version
+        run: mvn -v
       - name: Build and test
-        run: mvn -B install
+        run: mvn -B -e install
         working-directory: learning-wiremock
