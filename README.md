@@ -393,7 +393,7 @@ contracts can't express — you need raw WireMock for that.
 | Layer         | Technology                                          |
 |---------------|-----------------------------------------------------|
 | Language      | Java 25                                             |
-| Framework     | Spring Boot 4.1.1 (super-pom 1.1.2, as of 2026)     |
+| Framework     | Spring Boot 4.1.1 (super-pom 1.1.3, as of 2026)     |
 | HTTP client   | Spring WebFlux `WebClient`                          |
 | Mocking       | WireMock 3.13 (via `spring-cloud-contract-wiremock` 5.0.3) |
 | Testing       | JUnit 6 · Testcontainers 2 · Spring Cloud Contract 5.0.3 |
