@@ -115,11 +115,11 @@ Explicit `.atPriority(n)` overrides (lower number = higher priority).
 
 | Mode                                                                 | When                                                  |
 |----------------------------------------------------------------------|-------------------------------------------------------|
-| **JUnit 5 `WireMockExtension`** (this repo)                          | Unit/slice tests of an HTTP client — fastest feedback |
+| **JUnit 5 [`WireMockExtension`][WireMockExtension]** (this repo)     | Unit/slice tests of an HTTP client — fastest feedback |
 | **Standalone JAR** (`java -jar wiremock-standalone.jar --port 8081`) | Manual exploration, non-JVM consumers, demos          |
 | **Docker** (`wiremock/wiremock`)                                     | CI environments, docker-compose stacks                |
 | **Testcontainers module**                                            | Integration tests wanting container isolation         |
-| **Embedded `WireMockServer`**                                        | Programmatic control outside JUnit                    |
+| **Embedded [`WireMockServer`][WireMockServer]**                      | Programmatic control outside JUnit                    |
 | **WireMock Cloud**                                                   | Hosted mock APIs, team sharing                        |
 
 ### <span style="color:hsl(61,80%,50%)">2.3 Request matching reference</span>
@@ -161,7 +161,7 @@ into precise, minimal stubs.
 When a request matches no stub, WireMock doesn't just 404 — it computes a **distance** to
 every registered stub and reports the closest ones ([verifying docs](https://wiremock.org/docs/verifying/)).
 A one-character path typo shows up as a near-miss diff instead of a mystery failure.
-`ConsoleNotifier(true)` prints these during test runs — turn it on when debugging, off in CI.
+[`ConsoleNotifier(true)`][ConsoleNotifier] prints these during test runs — turn it on when debugging, off in CI.
 
 <a id="3-spring-cloud-contract--the-deep-dive"></a>
 ## <span style="color:hsl(114,80%,58%)">3. ☁️ Spring Cloud Contract — the deep dive</span>
@@ -275,7 +275,7 @@ public void validate_shouldReturnMovieById() throws Exception {
 }
 ```
 
-The base class boots the controller (usually `@SpringBootTest` + RestAssured-MockMvc with
+The base class boots the controller (usually [`@SpringBootTest`][SpringBootTest] + RestAssured-MockMvc with
 mocked service layer). `mvn install` then also produces
 `movies-service-<version>-stubs.jar` containing the equivalent WireMock JSON mappings —
 the stubs are a *by-product of a verified build*, which is the whole point.
@@ -312,7 +312,7 @@ Contract.make {
 }
 ```
 
-Producer build verifies the message really gets sent; consumer uses `StubTrigger` to fire
+Producer build verifies the message really gets sent; consumer uses [`StubTrigger`][StubTrigger] to fire
 `movie_created` and assert its listener handles the payload.
 
 ### <span style="color:hsl(356,80%,58%)">3.7 Spring Cloud Contract in this repo</span>
@@ -327,7 +327,7 @@ the Spring-managed WireMock integration. Even without contracts, it gives:
 
 </ul>
 
-This repo's hand-written stub tests (section 7) use the plain `WireMockExtension` for
+This repo's hand-written stub tests (section 7) use the plain [`WireMockExtension`][WireMockExtension] for
 fine-grained control over faults/delays/templating — that's the right tool for exercising
 client error-handling paths a contract can't express. Alongside them, `movies-service` now
 carries real **producer contracts** and `movies-client` a **stub-runner consumer test**, so
@@ -394,7 +394,7 @@ contracts can't express — you need raw WireMock for that.
 |---------------|-----------------------------------------------------|
 | Language      | Java 25                                             |
 | Framework     | Spring Boot 4.1.1 (super-pom 1.1.3, as of 2026)     |
-| HTTP client   | Spring WebFlux `WebClient`                          |
+| HTTP client   | Spring WebFlux [`WebClient`][WebClient]                          |
 | Mocking       | WireMock 3.13 (via `spring-cloud-contract-wiremock` 5.0.3) |
 | Testing       | JUnit 6 · Testcontainers 2 · Spring Cloud Contract 5.0.3 |
 | Observability | Spring Actuator · Micrometer · Prometheus · Grafana |
@@ -495,7 +495,7 @@ WireMock starts on a **random port** per test class — no port conflicts, paral
 
 ### <span style="color:hsl(154,80%,58%)">7.1 JUnit 5 native extension (best practice)</span>
 
-Use `WireMockExtension` with `@RegisterExtension` — replaces the legacy JUnit 4 `@Rule WireMockRule`.
+Use [`WireMockExtension`][WireMockExtension] with [`@RegisterExtension`][RegisterExtension] — replaces the legacy JUnit 4 `@Rule WireMockRule`.
 
 ```java
 @RegisterExtension
@@ -508,7 +508,7 @@ static WireMockExtension wireMock = WireMockExtension.newInstance()
         .build();
 ```
 
-> **WireMock 3.x note:** Do NOT manually register `ResponseTemplateTransformer` via `.extensions()`.
+> **WireMock 3.x note:** Do NOT manually register [`ResponseTemplateTransformer`][ResponseTemplateTransformer] via `.extensions()`.
 > Use `.templatingEnabled(true).globalTemplating(true)` — it is built in.
 
 ### <span style="color:hsl(291,80%,58%)">7.2 URL & method matching</span>
@@ -632,18 +632,18 @@ wireMock.verify(exactly(1),
 <a id="9-wiremock-3x-best-practices"></a>
 ## <span style="color:hsl(89,80%,58%)">9. 🤝 WireMock 3.x best practices</span>
 
-| Practice                                             | Why                                                                                                     |
-|------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
-| `@RegisterExtension static`                          | Shares one WireMock server per test class; resets stubs between tests                                   |
-| `.dynamicPort()`                                     | Avoids port conflicts in parallel test execution                                                        |
-| `.templatingEnabled(true).globalTemplating(true)`    | WireMock 3.x built-in — no manual `ResponseTemplateTransformer` needed                                  |
-| Instance `wireMock.stubFor()` not static `stubFor()` | Scoped to the extension; static method uses a global client and causes confusion in multi-server setups |
-| Body files in `__files/`                             | Separates test data from test code; reusable across stubs                                               |
-| `withBodyFile()` over inline `.withBody()`           | Cleaner for large JSON; supports Handlebars templating from the file                                    |
-| `wireMock.verify()` after the act                    | Adds spy-level assurance that the client actually called the stub                                       |
-| Use `matchingJsonPath` for partial request matching  | More resilient than full JSON equality; tolerates field ordering                                        |
-| `ConsoleNotifier(true)` while debugging              | Prints near-miss diffs when a request doesn't match any stub                                            |
-| Prefer contracts over long-lived hand stubs          | Hand-written stubs drift; producer-verified stubs (section 3) can't                                     |
+| Practice                                                   | Why                                                                                                     |
+|------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
+| `@RegisterExtension static`                                | Shares one WireMock server per test class; resets stubs between tests                                   |
+| `.dynamicPort()`                                           | Avoids port conflicts in parallel test execution                                                        |
+| `.templatingEnabled(true).globalTemplating(true)`          | WireMock 3.x built-in — no manual [`ResponseTemplateTransformer`][ResponseTemplateTransformer] needed   |
+| Instance `wireMock.stubFor()` not static `stubFor()`       | Scoped to the extension; static method uses a global client and causes confusion in multi-server setups |
+| Body files in `__files/`                                   | Separates test data from test code; reusable across stubs                                               |
+| `withBodyFile()` over inline `.withBody()`                 | Cleaner for large JSON; supports Handlebars templating from the file                                    |
+| `wireMock.verify()` after the act                          | Adds spy-level assurance that the client actually called the stub                                       |
+| Use `matchingJsonPath` for partial request matching        | More resilient than full JSON equality; tolerates field ordering                                        |
+| [`ConsoleNotifier(true)`][ConsoleNotifier] while debugging | Prints near-miss diffs when a request doesn't match any stub                                            |
+| Prefer contracts over long-lived hand stubs                | Hand-written stubs drift; producer-verified stubs (section 3) can't                                     |
 
 ---
 
@@ -653,9 +653,9 @@ wireMock.verify(exactly(1),
 | Pattern                   | Where                                                                              |
 |---------------------------|------------------------------------------------------------------------------------|
 | **Template Method** (GoF) | `MoviesRestClient.executeRequest()` — invariant error handling, variant HTTP calls |
-| **Builder** (GoF)         | `Movie` via Lombok `@Builder`                                                      |
-| **Factory Method** (GoF)  | `WebClientConfig.moviesWebClient()` — constructs the `WebClient` bean              |
-| **Singleton** (GoF)       | All `@Service` / `@Configuration` Spring beans                                     |
+| **Builder** (GoF)         | `Movie` via Lombok [`@Builder`][Builder]                                           |
+| **Factory Method** (GoF)  | `WebClientConfig.moviesWebClient()` — constructs the [`WebClient`][WebClient] bean |
+| **Singleton** (GoF)       | All [`@Service`][Service] / [`@Configuration`][Configuration] Spring beans         |
 
 ---
 
@@ -682,3 +682,17 @@ Prometheus scrapes `host.docker.internal:8083/actuator/prometheus` every 10 s.
 - [WireMock advanced usage patterns](https://medium.com/javarevisited/wiremock-advanced-usage-patterns-c394ad2e3b78)
 
 </ul>
+
+<!-- Library classes mentioned above, linked to their source at the versions this project builds with. -->
+
+[Builder]: https://github.com/projectlombok/lombok/blob/v1.18.46/src/core/lombok/Builder.java
+[Configuration]: https://github.com/spring-projects/spring-framework/blob/v7.0.9/spring-context/src/main/java/org/springframework/context/annotation/Configuration.java
+[ConsoleNotifier]: https://github.com/wiremock/wiremock/blob/3.13.2/src/main/java/com/github/tomakehurst/wiremock/common/ConsoleNotifier.java
+[RegisterExtension]: https://github.com/junit-team/junit-framework/blob/r6.0.3/junit-jupiter-api/src/main/java/org/junit/jupiter/api/extension/RegisterExtension.java
+[ResponseTemplateTransformer]: https://github.com/wiremock/wiremock/blob/3.13.2/src/main/java/com/github/tomakehurst/wiremock/extension/responsetemplating/ResponseTemplateTransformer.java
+[Service]: https://github.com/spring-projects/spring-framework/blob/v7.0.9/spring-context/src/main/java/org/springframework/stereotype/Service.java
+[SpringBootTest]: https://github.com/spring-projects/spring-boot/blob/v4.1.1/core/spring-boot-test/src/main/java/org/springframework/boot/test/context/SpringBootTest.java
+[StubTrigger]: https://github.com/spring-cloud/spring-cloud-contract/blob/v5.0.3/spring-cloud-contract-stub-runner/src/main/java/org/springframework/cloud/contract/stubrunner/StubTrigger.java
+[WebClient]: https://github.com/spring-projects/spring-framework/blob/v7.0.9/spring-webflux/src/main/java/org/springframework/web/reactive/function/client/WebClient.java
+[WireMockExtension]: https://github.com/wiremock/wiremock/blob/3.13.2/src/main/java/com/github/tomakehurst/wiremock/junit5/WireMockExtension.java
+[WireMockServer]: https://github.com/wiremock/wiremock/blob/3.13.2/src/main/java/com/github/tomakehurst/wiremock/WireMockServer.java
