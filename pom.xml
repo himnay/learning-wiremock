@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.org.llm</groupId>
         <artifactId>super-pom</artifactId>
-        <version>1.1.4</version>
+        <version>1.2.0</version>
     </parent>
 
     <groupId>com.learnwiremock</groupId>
@@ -18,7 +18,6 @@
     <description>Learning WireMock with Spring Boot — stubs, response templates, fault simulation, and selective proxying</description>
 
     <properties>
-        <java.version>25</java.version>
         <spring-cloud-contract.version>5.0.3</spring-cloud-contract.version>
     </properties>
 
