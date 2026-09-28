@@ -50,8 +50,13 @@ public class MovieService {
         return movies;
     }
 
-    /** Adds movie. */
+    /**
+     * Adds a movie under a newly generated id. A {@code movie_id} in the request body is ignored:
+     * honouring it would let a POST overwrite an existing movie, and a later generated id could
+     * collide with it.
+     */
     public Movie addMovie(Movie movie) {
+        movie.setMovie_id(null);
         Movie saved = repository.save(movie);
         log.info("Created movie: id={}, name='{}'", saved.getMovie_id(), saved.getName());
         return saved;
