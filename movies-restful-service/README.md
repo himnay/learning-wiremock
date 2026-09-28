@@ -2,10 +2,12 @@
 
 ## <span style="color:hsl(27,80%,58%)">How to Run the app?</span>
 
-- Run the below command in your machine. You must have java8 or higher to run this application.
+- Two builds of the same service (Spring Boot 2.1, in-memory H2): `movies-restful-service-java8.jar` needs
+  Java 8 or higher, `movies-restful-service-beyond-java8.jar` Java 11 or higher. `docker compose up -d` in
+  the repo root runs the latter on Java 27.
 
 ```
-java -jar movies-restful-service.jar
+java -jar movies-restful-service-beyond-java8.jar
 ```
 
 ## <span style="color:hsl(164,80%,58%)">Swagger Link</span>

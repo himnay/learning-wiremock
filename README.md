@@ -285,10 +285,10 @@ the stubs are a *by-product of a verified build*, which is the whole point.
 ```java
 @SpringBootTest
 @AutoConfigureStubRunner(
-        ids = "com.learnwiremock:movies-service:+:stubs:8081",   // group:artifact:version:classifier:port
+        ids = "com.learnwiremock:movies-service:+:stubs:8091",   // group:artifact:version:classifier:port
         stubsMode = StubRunnerProperties.StubsMode.LOCAL)         // LOCAL m2 / REMOTE repo / CLASSPATH
-class MoviesRestClientContractTest {
-    // client hits localhost:8081 — a WireMock server loaded with producer-verified stubs
+class MoviesRestClientContractIntgTest {
+    // client hits localhost:8091 — a WireMock server loaded with producer-verified stubs
 }
 ```
 
@@ -322,12 +322,12 @@ the Spring-managed WireMock integration. Even without contracts, it gives:
 
 <ul>
 
-- BOM-managed WireMock version aligned with Spring Boot
+- WireMock version managed by the `spring-cloud-contract-dependencies` BOM (WireMock 3.13.2 with Contract 5.0.3)
 - `@AutoConfigureWireMock(port = 0)` — WireMock lifecycle wired into the Spring test context, `${wiremock.server.port}` property injection
 
 </ul>
 
-This repo's hand-written stub tests (section 7) use the plain [`WireMockExtension`][WireMockExtension] for
+This repo's hand-written stub tests (section 8) use the plain [`WireMockExtension`][WireMockExtension] for
 fine-grained control over faults/delays/templating — that's the right tool for exercising
 client error-handling paths a contract can't express. Alongside them, `movies-service` now
 carries real **producer contracts** and `movies-client` a **stub-runner consumer test**, so
@@ -358,9 +358,9 @@ mvn test -pl movies-client              # includes MoviesRestClientContractIntgT
 
 Both green confirms real end-to-end agreement: the producer's controller was verified
 against the exact same request/response shapes the consumer's stub-runner test replays.
-(`spring-cloud-contract-maven-plugin` version is pinned to match whatever
-`spring-cloud-dependencies` — via `learning-bom` — manages; check `movies-service/pom.xml`
-if bumping the Spring Cloud train.)
+(`spring-cloud-contract-maven-plugin` and the `spring-cloud-contract-dependencies` import both use
+the `spring-cloud-contract.version` property in the root `pom.xml`: the Spring Cloud release train
+no longer manages Contract, so bump that one property.)
 
 <a id="4-wiremock-vs-spring-cloud-contract-vs-pact"></a>
 ## <span style="color:hsl(134,80%,58%)">4. ☁️ WireMock vs Spring Cloud Contract vs Pact</span>
@@ -377,28 +377,29 @@ if bumping the Spring Cloud train.)
 | Best for                   | Client unit tests, error/fault simulation, exploration | Spring-to-Spring service estates                     | Polyglot estates, org-wide CDC               |
 
 They compose: **WireMock for how your client behaves under failure; Spring Cloud Contract for
-whether producer and consumer still agree.** Fault injection (section 7.7–7.8) is something
+whether producer and consumer still agree.** Fault injection (section 8.7–8.8) is something
 contracts can't express — you need raw WireMock for that.
 
 <a id="5-project-modules--structure"></a>
 ## <span style="color:hsl(271,80%,58%)">5. 🏗️ Project modules & structure</span>
 
-| Module          | Description                                                       |
-|-----------------|-------------------------------------------------------------------|
-| `movies-client` | REST client for the movies service, with full WireMock test suite |
+| Module           | Description                                                                                                                                                                  |
+|------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `movies-client`  | REST client for the movies service, with full WireMock test suite                                                                                                            |
+| `movies-service` | Movies REST API (Spring Boot 4, in memory): the contract producer, verified against the Groovy contracts; its build publishes the stubs jar the client's contract test loads |
 
 <a id="6-tech-stack"></a>
 ## <span style="color:hsl(49,80%,50%)">6. 🧰 Tech stack</span>
 
-| Layer         | Technology                                          |
-|---------------|-----------------------------------------------------|
-| Language      | Java 25                                             |
-| Framework     | Spring Boot 4.1.1 (super-pom 1.1.3, as of 2026)     |
-| HTTP client   | Spring WebFlux [`WebClient`][WebClient]                          |
+| Layer         | Technology                                                 |
+|---------------|------------------------------------------------------------|
+| Language      | Java 27                                                    |
+| Framework     | Spring Boot 4.1.1 (super-pom 1.2.0, as of 2026)            |
+| HTTP client   | Spring WebFlux [`WebClient`][WebClient]                    |
 | Mocking       | WireMock 3.13 (via `spring-cloud-contract-wiremock` 5.0.3) |
-| Testing       | JUnit 6 · Testcontainers 2 · Spring Cloud Contract 5.0.3 |
-| Observability | Spring Actuator · Micrometer · Prometheus · Grafana |
-| Build         | Maven 3.9 (parent: `super-pom`)                     |
+| Testing       | JUnit 6 · Spring Cloud Contract 5.0.3 (Stub Runner)        |
+| Observability | Spring Actuator · Micrometer · Prometheus · Grafana        |
+| Build         | Maven 3.9 (parent: `super-pom`)                            |
 
 > `.mvn/maven.config` sets `-Dmaven.resolver.transport=wagon`: on Maven 3.9.16 (GitHub's runner) the
 > contract plugin's Apache HttpClient 4 classes clash with Maven's own HTTP transport as soon as a
@@ -418,6 +419,7 @@ learning-wiremock/
 ├── movies-restful-service/           # pre-built JARs of the movies REST API (port 8081)
 │   ├── movies-restful-service-beyond-java8.jar
 │   └── movies-restful-service-java8.jar
+├── movies-service/                   # contract producer, Spring Boot 4 movies API (section 3.7)
 └── movies-client/
     ├── pom.xml
     └── src/
@@ -437,6 +439,7 @@ learning-wiremock/
         └── test/
             ├── java/com/learnwiremock/service/
             │   ├── MoviesRestClientTest.java                # happy-path + error stubs
+            │   ├── MoviesRestClientContractIntgTest.java    # Stub Runner, producer-verified stubs
             │   ├── MoviesRestClientServerErrorTest.java     # faults + timeouts
             │   └── MoviesRestClientSelectiveProxyingTest.java # proxy overrides
             └── resources/__files/                           # WireMock response body files
@@ -451,7 +454,9 @@ learning-wiremock/
 docker compose up -d
 ```
 
-The movies REST service starts on **port 8081** via Docker (Java 21 image, `beyond-java8` JAR).
+The movies REST service starts on **port 8081** via Docker: the pre-built `beyond-java8` JAR (Spring
+Boot 2.1, Java 11 bytecode) on a SapMachine 27 JRE. Temurin 27 images weren't on Docker Hub yet.
+`mvn spring-boot:run -pl movies-service` runs this repo's own implementation on the same port instead.
 
 | Service    | URL                                                  |
 |------------|------------------------------------------------------|
@@ -493,7 +498,7 @@ WireMock starts on a **random port** per test class — no port conflicts, paral
 <a id="8-wiremock-3x--features-covered-in-the-tests"></a>
 ## <span style="color:hsl(16,80%,58%)">8. 🧪 WireMock 3.x — features covered in the tests</span>
 
-### <span style="color:hsl(154,80%,58%)">7.1 JUnit 5 native extension (best practice)</span>
+### <span style="color:hsl(154,80%,58%)">8.1 JUnit 5 native extension (best practice)</span>
 
 Use [`WireMockExtension`][WireMockExtension] with [`@RegisterExtension`][RegisterExtension] — replaces the legacy JUnit 4 `@Rule WireMockRule`.
 
@@ -511,7 +516,7 @@ static WireMockExtension wireMock = WireMockExtension.newInstance()
 > **WireMock 3.x note:** Do NOT manually register [`ResponseTemplateTransformer`][ResponseTemplateTransformer] via `.extensions()`.
 > Use `.templatingEnabled(true).globalTemplating(true)` — it is built in.
 
-### <span style="color:hsl(291,80%,58%)">7.2 URL & method matching</span>
+### <span style="color:hsl(291,80%,58%)">8.2 URL & method matching</span>
 
 ```java
 // exact path
@@ -525,7 +530,7 @@ wireMock.stubFor(get(urlPathEqualTo("/movieservice/v1/movieByName"))
         .withQueryParam("movie_name", equalTo("Avengers"))...);
 ```
 
-### <span style="color:hsl(69,80%,50%)">7.3 Request body matching</span>
+### <span style="color:hsl(69,80%,50%)">8.3 Request body matching</span>
 
 ```java
 wireMock.stubFor(post(urlPathEqualTo("/movieservice/v1/movie"))
@@ -533,7 +538,7 @@ wireMock.stubFor(post(urlPathEqualTo("/movieservice/v1/movie"))
         .withRequestBody(matchingJsonPath("$.cast", containing("Salma")))...);
 ```
 
-### <span style="color:hsl(206,80%,58%)">7.4 Response body from file (`__files/`)</span>
+### <span style="color:hsl(206,80%,58%)">8.4 Response body from file (`__files/`)</span>
 
 Files in `src/test/resources/__files/` are served as-is.
 
@@ -545,7 +550,7 @@ wireMock.stubFor(get(urlPathEqualTo("/movieservice/v1/allMovies"))
                 .withBodyFile("all-movies.json")));
 ```
 
-### <span style="color:hsl(344,80%,58%)">7.5 Response templates (Handlebars)</span>
+### <span style="color:hsl(344,80%,58%)">8.5 Response templates (Handlebars)</span>
 
 With `.templatingEnabled(true).globalTemplating(true)`, any `{{...}}` in a body file is evaluated:
 
@@ -565,7 +570,7 @@ With `.templatingEnabled(true).globalTemplating(true)`, any `{{...}}` in a body 
   "name": "{{jsonPath request.body '$.name'}}" }
 ```
 
-### <span style="color:hsl(121,80%,58%)">7.6 HTTP error simulation</span>
+### <span style="color:hsl(121,80%,58%)">8.6 HTTP error simulation</span>
 
 ```java
 wireMock.stubFor(get(anyUrl()).willReturn(serverError()));          // 500
@@ -574,7 +579,7 @@ wireMock.stubFor(get(anyUrl()).willReturn(aResponse()
         .withStatus(404).withBodyFile("404-movieid.json")));
 ```
 
-### <span style="color:hsl(259,80%,58%)">7.7 Network fault simulation</span>
+### <span style="color:hsl(259,80%,58%)">8.7 Network fault simulation</span>
 
 ```java
 wireMock.stubFor(get(anyUrl())
@@ -583,7 +588,7 @@ wireMock.stubFor(get(anyUrl())
         .willReturn(aResponse().withFault(Fault.RANDOM_DATA_THEN_CLOSE)));  // garbled bytes + close
 ```
 
-### <span style="color:hsl(36,80%,58%)">7.8 Latency & timeout simulation</span>
+### <span style="color:hsl(36,80%,58%)">8.8 Latency & timeout simulation</span>
 
 ```java
 // fixed delay
@@ -601,7 +606,7 @@ HttpClient httpClient = HttpClient.create()
         .responseTimeout(Duration.ofSeconds(5));
 ```
 
-### <span style="color:hsl(174,80%,58%)">7.9 Selective proxying</span>
+### <span style="color:hsl(174,80%,58%)">8.9 Selective proxying</span>
 
 Forward everything to the real service, then override specific paths with stubs:
 
@@ -615,7 +620,7 @@ wireMock.stubFor(get(urlPathEqualTo("/movieservice/v1/movie/1"))
         .willReturn(aResponse().withBodyFile("movie.json")));
 ```
 
-### <span style="color:hsl(311,80%,58%)">7.10 Request verification (WireMock spy)</span>
+### <span style="color:hsl(311,80%,58%)">8.10 Request verification (WireMock spy)</span>
 
 Assert that your client actually made the expected HTTP calls:
 
